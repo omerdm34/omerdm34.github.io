@@ -9,8 +9,10 @@ type Row = {
   status: string;
   live?: boolean;
   details: string[];
-  photo?: 'aselsan' | 'drone-workshop' | 'quadcopter';
+  photo?: 'aselsan' | 'drone-workshop' | 'quadcopter' | 'umfst' | 'firat' | 'mtu';
   photoAlt?: string;
+  photoCredit?: string;
+  logo?: 'aselsan' | 'umfst' | 'firat' | 'mtu';
 };
 
 type Project = {
@@ -73,6 +75,7 @@ const en = {
   departures: {
     heading: 'Departures',
     sub: 'Where I have worked and studied, latest first. Open a row for the details.',
+    photoBy: 'Photo',
     open: 'Details',
     close: 'Close',
     rows: [
@@ -85,6 +88,7 @@ const en = {
         status: 'LANDED',
         photo: 'aselsan',
         photoAlt: 'Ömer standing in front of the ASELSAN sign on campus',
+        logo: 'aselsan',
         details: [
           'Took over an internal web application that guides people through long, structured corporate forms: it detects the fields that must be filled, guides entry, reuses earlier answers as suggestions, protects sections that may not change, and recovers sessions.',
           'Rebuilt its AI assistant from scratch after finding the inherited version non-functional and incompatible with corporate information-security policy, and added a local layer that answers repetitive requests without leaving the machine. Responses got noticeably faster.',
@@ -115,6 +119,10 @@ const en = {
         org: 'UMFST “GEORGE EMIL PALADE”',
         gate: 'TÂRGU MUREȘ',
         status: 'LANDED',
+        photo: 'umfst',
+        logo: 'umfst',
+        photoAlt: 'Main building of UMFST in Târgu Mureș',
+        photoCredit: 'UMFST',
         details: [
           'Won the Erasmus+ scholarship through written and oral selection exams.',
           'Completed a full semester of informatics courses taught in English, September 2025 to February 2026.',
@@ -128,6 +136,10 @@ const en = {
         gate: 'ELAZIĞ',
         status: 'EN ROUTE',
         live: true,
+        photo: 'firat',
+        logo: 'firat',
+        photoAlt: 'Fırat University rectorate building',
+        photoCredit: 'Fırat University',
         details: [
           'Coursework in software engineering, data mining, natural language processing, information systems and security, and mobile application development.',
         ],
@@ -139,6 +151,10 @@ const en = {
         org: 'MALATYA TURGUT ÖZAL UNIVERSITY',
         gate: 'MALATYA',
         status: 'TRANSFER',
+        photo: 'mtu',
+        logo: 'mtu',
+        photoAlt: 'Aerial view of the Malatya Turgut Özal University campus',
+        photoCredit: 'Malatya Turgut Özal University',
         details: ['Transferred to Fırat University after the first year based on academic performance.'],
       },
     ] satisfies Row[],
@@ -316,6 +332,7 @@ const tr: Content = {
   departures: {
     heading: 'Kalkışlar',
     sub: 'Çalıştığım ve okuduğum yerler, en yeniden eskiye. Ayrıntılar için bir satırı aç.',
+    photoBy: 'Fotoğraf',
     open: 'Ayrıntılar',
     close: 'Kapat',
     rows: [
@@ -328,6 +345,7 @@ const tr: Content = {
         status: 'İNDİ',
         photo: 'aselsan',
         photoAlt: 'Kampüste ASELSAN yazısının önünde duran Ömer',
+        logo: 'aselsan',
         details: [
           'Kullanıcıları uzun ve yapılandırılmış kurumsal formlarda yönlendiren bir iç web uygulamasını devralıp geliştirdim: doldurulması gereken alanları bulma, yönlendirmeli giriş, önceki cevaplardan öneri, değiştirilmemesi gereken bölümleri koruma ve oturum kurtarma.',
           'Devraldığım yapay zekâ asistanı çalışmıyordu ve kurumsal bilgi güvenliği politikasına uymuyordu; sıfırdan yeniden yazdım. Tekrarlayan istekleri makineden hiç çıkmadan cevaplayan yerel bir katman ekledim, cevap süreleri gözle görülür şekilde kısaldı.',
@@ -358,6 +376,10 @@ const tr: Content = {
         org: 'UMFST “GEORGE EMIL PALADE”',
         gate: 'TÂRGU MUREȘ',
         status: 'İNDİ',
+        photo: 'umfst',
+        logo: 'umfst',
+        photoAlt: 'Târgu Mureș’teki UMFST ana binası',
+        photoCredit: 'UMFST',
         details: [
           'Erasmus+ bursunu yazılı ve sözlü seçme sınavlarını geçerek kazandım.',
           'Eylül 2025 – Şubat 2026 arasında İngilizce verilen bilişim derslerinden oluşan tam bir dönemi tamamladım.',
@@ -371,6 +393,10 @@ const tr: Content = {
         gate: 'ELAZIĞ',
         status: 'YOLDA',
         live: true,
+        photo: 'firat',
+        logo: 'firat',
+        photoAlt: 'Fırat Üniversitesi rektörlük binası',
+        photoCredit: 'Fırat Üniversitesi',
         details: [
           'Yazılım mühendisliği, veri madenciliği, doğal dil işleme, bilgi sistemleri ve güvenliği ile mobil uygulama geliştirme ağırlıklı dersler.',
         ],
@@ -382,6 +408,10 @@ const tr: Content = {
         org: 'MALATYA TURGUT ÖZAL ÜNİVERSİTESİ',
         gate: 'MALATYA',
         status: 'AKTARMA',
+        photo: 'mtu',
+        logo: 'mtu',
+        photoAlt: 'Malatya Turgut Özal Üniversitesi kampüsünün havadan görünümü',
+        photoCredit: 'Malatya Turgut Özal Üniversitesi',
         details: ['Birinci yılın ardından akademik başarıyla Fırat Üniversitesi’ne geçiş yaptım.'],
       },
     ],

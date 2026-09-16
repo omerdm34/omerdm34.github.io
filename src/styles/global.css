@@ -206,7 +206,7 @@ html { scrollbar-color: var(--line-strong) var(--board); }
 /* ============ Photos ============ */
 .duo { position: relative; overflow: hidden; background: var(--flap); }
 .duo img { width: 100%; height: 100%; object-fit: cover; }
-.duo--hero { aspect-ratio: 1 / 1; }
+.duo--hero { aspect-ratio: 4 / 5; }
 .duo--hero img { position: absolute; inset: 0; object-position: 50% 30%; }
 .js .duo--hero img { animation: gate-open 1100ms var(--ease-out) 150ms both; }
 @keyframes gate-open {
@@ -322,6 +322,14 @@ section { scroll-margin-top: 4.5rem; }
 .row__detail { display: grid; gap: 2rem; padding: 0.5rem 0.75rem 2rem calc(17rem + 2rem + 0.75rem); }
 .row__detail--photo { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
 .row__detail .duo { aspect-ratio: 4 / 3; border-radius: 2px; }
+.row__figure { margin: 0; }
+.row__credit { margin-top: 0.4rem; font-family: var(--f-data); font-size: 0.72rem; color: var(--ink-3); }
+.row__logo { display: block; width: auto; height: 2.4rem; max-width: min(24rem, 100%); object-fit: contain; object-position: left center; margin: 0.4rem 0 1.4rem; }
+.row__logo--mono { filter: brightness(0) invert(0.93); }
+.row__logo--aselsan { height: 1.5rem; }
+.row__logo--umfst { height: 3.2rem; }
+.row__logo--firat { height: 2.8rem; }
+.row__logo--mtu { height: auto; width: min(22rem, 100%); }
 .ticks { display: grid; gap: 0.9rem; max-width: 70ch; }
 .ticks li { position: relative; padding-left: 1.6rem; color: var(--ink-2); }
 .ticks li::before {
@@ -570,7 +578,9 @@ section { scroll-margin-top: 4.5rem; }
 /* ============ Responsive hero ============ */
 @media (max-width: 1000px) {
   .hero { grid-template-columns: 1fr; align-items: start; padding-top: 5.25rem; }
-  .hero__gate { order: -1; }
+  .hero__gate { order: -1; max-width: none; }
+  .duo--hero { aspect-ratio: 1 / 1; }
+  .duo--hero img { object-position: 50% 45%; }
   .gate__label { font-size: 1.3rem; }
 }
 @media (max-width: 560px) {

@@ -11,6 +11,13 @@ import quadcopter from '../assets/photos/quadcopter.jpg';
 import vienna from '../assets/photos/vienna.jpg';
 import prague from '../assets/photos/prague.jpg';
 import rome from '../assets/photos/rome.jpg';
+import placeUmfst from '../assets/places/umfst.jpg';
+import placeFirat from '../assets/places/firat.jpg';
+import placeMtu from '../assets/places/mtu.jpg';
+import logoAselsan from '../assets/logos/aselsan.svg';
+import logoUmfst from '../assets/logos/umfst.svg';
+import logoFirat from '../assets/logos/firat.png';
+import logoMtu from '../assets/logos/mtu.png';
 import signbridgeLive from '../assets/projects/signbridge-live.png';
 import dcenergy from '../assets/projects/dcenergy.png';
 import masal from '../assets/projects/masal.png';
@@ -22,7 +29,15 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = content[lang];
 
-const photos = { aselsan, 'drone-workshop': droneWorkshop, quadcopter, vienna, prague, rome } as const;
+const photos = { aselsan, 'drone-workshop': droneWorkshop, quadcopter, vienna, prague, rome, umfst: placeUmfst, firat: placeFirat, mtu: placeMtu } as const;
+// logos drawn as a single light ink on the board; Fırat keeps its maroon mark
+const logos = {
+  aselsan: { src: logoAselsan, name: 'ASELSAN', mono: true },
+  umfst: { src: logoUmfst, name: 'UMFST', mono: true },
+  firat: { src: logoFirat, name: 'Fırat Üniversitesi', mono: false },
+  mtu: { src: logoMtu, name: 'Malatya Turgut Özal Üniversitesi', mono: true },
+} as const;
+const photoPos: Record<string, string> = { 'drone-workshop': '50% 18%', aselsan: '42% 55%', umfst: '60% 40%', firat: '50% 45%', mtu: '50% 60%' };
 const certImgs = { 'code-genius': certCodeGenius, yea: certYea, 'national-athlete': certAthlete } as const;
 const certFull = Object.fromEntries(
   await Promise.all(
@@ -135,7 +150,7 @@ const placesBand = lang === 'tr'
     <figure class="hero__gate">
       <figcaption class="gate__label" aria-hidden="true"><span>{t.hero.gate}</span><span class="gate__num">A1</span></figcaption>
       <div class="duo duo--hero">
-        <Image src={heroPhoto} alt={t.hero.photoAlt} widths={[400]} sizes="(min-width: 1000px) 30vw, 90vw" loading="eager" fetchpriority="high" />
+        <Image src={heroPhoto} alt={t.hero.photoAlt} widths={[480, 800, 1200]} sizes="(min-width: 1000px) 30vw, 92vw" loading="eager" fetchpriority="high" />
       </div>
     </figure>
   </section>
@@ -189,11 +204,19 @@ const placesBand = lang === 'tr'
           </h3>
           <div class="row__panel" id={`dep-${i}`} hidden>
             <div class:list={['row__detail', r.photo && 'row__detail--photo']}>
-              <ul class="ticks">{r.details.map((d) => <li>{d}</li>)}</ul>
+              <div class="row__text">
+                {r.logo && (
+                  <Image src={logos[r.logo].src} alt={logos[r.logo].name} class:list={['row__logo', `row__logo--${r.logo}`, logos[r.logo].mono && 'row__logo--mono']} height={120} />
+                )}
+                <ul class="ticks">{r.details.map((d) => <li>{d}</li>)}</ul>
+              </div>
               {r.photo && (
-                <div class="duo">
-                  <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" />
-                </div>
+                <figure class="row__figure">
+                  <div class="duo">
+                    <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" style={`object-position:${photoPos[r.photo] ?? '50% 50%'}`} />
+                  </div>
+                  {r.photoCredit && <figcaption class="row__credit">{t.departures.photoBy}: {r.photoCredit}</figcaption>}
+                </figure>
               )}
             </div>
           </div>

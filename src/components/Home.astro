@@ -13,7 +13,6 @@ import prague from '../assets/photos/prague.jpg';
 import rome from '../assets/photos/rome.jpg';
 import placeUmfst from '../assets/places/umfst.jpg';
 import placeFirat from '../assets/places/firat.jpg';
-import placeMtu from '../assets/places/mtu.jpg';
 import logoAselsan from '../assets/logos/aselsan.svg';
 import logoUmfst from '../assets/logos/umfst.svg';
 import logoFirat from '../assets/logos/firat.png';
@@ -29,7 +28,7 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = content[lang];
 
-const photos = { aselsan, 'drone-workshop': droneWorkshop, quadcopter, vienna, prague, rome, umfst: placeUmfst, firat: placeFirat, mtu: placeMtu } as const;
+const photos = { aselsan, 'drone-workshop': droneWorkshop, quadcopter, vienna, prague, rome, umfst: placeUmfst, firat: placeFirat } as const;
 // logos drawn as a single light ink on the board; Fırat keeps its maroon mark
 const logos = {
   aselsan: { src: logoAselsan, name: 'ASELSAN', mono: true },
@@ -37,7 +36,7 @@ const logos = {
   firat: { src: logoFirat, name: 'Fırat Üniversitesi', mono: false },
   mtu: { src: logoMtu, name: 'Malatya Turgut Özal Üniversitesi', mono: true },
 } as const;
-const photoPos: Record<string, string> = { 'drone-workshop': '50% 18%', aselsan: '42% 55%', umfst: '60% 40%', firat: '50% 45%', mtu: '50% 60%' };
+const photoPos: Record<string, string> = { 'drone-workshop': '50% 18%', aselsan: '42% 55%', umfst: '60% 40%', firat: '50% 45%' };
 const certImgs = { 'code-genius': certCodeGenius, yea: certYea, 'national-athlete': certAthlete } as const;
 const certFull = Object.fromEntries(
   await Promise.all(

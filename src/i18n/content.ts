@@ -9,7 +9,7 @@ type Row = {
   status: string;
   live?: boolean;
   details: string[];
-  photo?: 'aselsan' | 'drone-workshop' | 'quadcopter' | 'umfst' | 'firat' | 'mtu';
+  photo?: 'aselsan' | 'drone-workshop' | 'quadcopter' | 'umfst' | 'firat';
   photoAlt?: string;
   photoCredit?: string;
   logo?: 'aselsan' | 'umfst' | 'firat' | 'mtu';
@@ -151,10 +151,7 @@ const en = {
         org: 'MALATYA TURGUT ÖZAL UNIVERSITY',
         gate: 'MALATYA',
         status: 'TRANSFER',
-        photo: 'mtu',
         logo: 'mtu',
-        photoAlt: 'Aerial view of the Malatya Turgut Özal University campus',
-        photoCredit: 'Malatya Turgut Özal University',
         details: ['Transferred to Fırat University after the first year based on academic performance.'],
       },
     ] satisfies Row[],
@@ -408,10 +405,7 @@ const tr: Content = {
         org: 'MALATYA TURGUT ÖZAL ÜNİVERSİTESİ',
         gate: 'MALATYA',
         status: 'AKTARMA',
-        photo: 'mtu',
         logo: 'mtu',
-        photoAlt: 'Malatya Turgut Özal Üniversitesi kampüsünün havadan görünümü',
-        photoCredit: 'Malatya Turgut Özal Üniversitesi',
         details: ['Birinci yılın ardından akademik başarıyla Fırat Üniversitesi’ne geçiş yaptım.'],
       },
     ],

@@ -1,0 +1,9 @@
+node_modules
+dist
+.astro
+
+# private notes, kept local only
+PRODUCT.md
+DESIGN.md
+.impeccable/
+.claude/

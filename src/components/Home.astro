@@ -1,0 +1,398 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Flap from './Flap.astro';
+import Icon from './Icon.astro';
+import { content, links, datathonScores, type Lang } from '../i18n/content';
+
+import droneWorkshop from '../assets/photos/drone-workshop.jpg';
+import aselsan from '../assets/photos/aselsan.jpg';
+import quadcopter from '../assets/photos/quadcopter.jpg';
+import vienna from '../assets/photos/vienna.jpg';
+import prague from '../assets/photos/prague.jpg';
+import rome from '../assets/photos/rome.jpg';
+import signbridgeLive from '../assets/projects/signbridge-live.png';
+import dcenergy from '../assets/projects/dcenergy.png';
+import masal from '../assets/projects/masal.png';
+import certCodeGenius from '../assets/certs/code-genius.jpg';
+import certYea from '../assets/certs/yea.jpg';
+import certAthlete from '../assets/certs/national-athlete.jpg';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = content[lang];
+
+const photos = { aselsan, 'drone-workshop': droneWorkshop, quadcopter, vienna, prague, rome } as const;
+const certImgs = { 'code-genius': certCodeGenius, yea: certYea, 'national-athlete': certAthlete } as const;
+const certFull = Object.fromEntries(
+  await Promise.all(
+    Object.entries(certImgs).map(async ([k, v]) => [k, (await getImage({ src: v, width: 1400, format: 'webp' })).src]),
+  ),
+);
+
+// GitHub repositories, fetched at build time. The section is omitted if the API is unreachable.
+type Repo = { name: string; description: string | null; language: string | null; pushed_at: string; html_url: string; fork: boolean; private: boolean };
+let repos: Repo[] = [];
+try {
+  const headers: Record<string, string> = { Accept: 'application/vnd.github+json', 'User-Agent': 'omer-portfolio' };
+  if (import.meta.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${import.meta.env.GITHUB_TOKEN}`;
+  const res = await fetch('https://api.github.com/users/omerdm34/repos?sort=pushed&per_page=30', { headers });
+  if (res.ok) {
+    repos = ((await res.json()) as Repo[])
+      .filter((r) => !r.fork && !r.private && r.name !== 'omerdm34.github.io')
+      .slice(0, 5);
+  }
+} catch {
+  repos = [];
+}
+const monthFmt = new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+const maxScore = datathonScores[0];
+const statusClass = (s: string) =>
+  ['LIVE', 'YAYINDA', 'EN ROUTE', 'YOLDA', 'BOARDING', 'BİNİŞ'].includes(s) ? 'status status--live' : 'status';
+const other = lang === 'tr' ? '/' : '/tr/';
+const U = (v: string) => v.toLocaleUpperCase(lang);
+---
+<header class="topbar" data-topbar>
+  <a class="brand" href={lang === 'tr' ? '/tr/' : '/'} aria-label="Ömer Faruk Erdem">
+    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span>
+  </a>
+  <nav class="topnav" aria-label={lang === 'tr' ? 'Bölümler' : 'Sections'}>
+    <a href="#departures">{U(t.nav.departures)}</a>
+    <a href="#projects">{U(t.nav.projects)}</a>
+    <a href="#beyond">{U(t.nav.beyond)}</a>
+    <a href="#contact">{U(t.nav.contact)}</a>
+  </nav>
+  <div class="topbar__actions">
+    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'} aria-label={t.langSwitch.label}>
+      <span class:list={['lang__opt', lang === 'en' && 'is-on']}>EN</span>
+      <span class:list={['lang__opt', lang === 'tr' && 'is-on']}>TR</span>
+    </a>
+    <a class="btn btn--ghost btn--sm" href={links.cv} download aria-label={t.cvLong}>
+      <Icon name="download" /><span>{t.cv}</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Hero: the board -->
+  <section class="hero" aria-labelledby="hero-name">
+    <div class="hero__board">
+      <div class="board-head" aria-hidden="true">
+        <Icon name="plane" class="icon board-head__plane" />
+        <span class="board-head__title">{U(t.intro.boarding)}</span>
+        <span class="board-head__clock" data-date></span>
+      </div>
+      <h1 id="hero-name" class="hero__name">
+        <Flap text={t.hero.first} class="flaps--xl" />
+        <Flap text={t.hero.last} class="flaps--xl" />
+      </h1>
+      <Flap as="p" text={t.hero.role} class="flaps--md hero__role" />
+      <p class="hero__lede">{t.hero.lede}</p>
+
+      <div class="next" data-announce>
+        <span class="next__label">{U(t.hero.nextLabel)}</span>
+        <Flap text={t.hero.next} class="flaps--sm next__dest" />
+        <Flap text={t.hero.nextStatus} class="flaps--sm status status--live next__status" />
+      </div>
+
+      <div class="hero__actions">
+        <a class="sign" href="#contact">
+          <span>{U(t.hero.ctaPrimary)}</span><Icon name="arrow" />
+        </a>
+        <a class="btn btn--ghost" href="#projects">
+          <span>{U(t.hero.ctaSecondary)}</span><Icon name="arrow-down" />
+        </a>
+      </div>
+    </div>
+
+    <figure class="hero__gate">
+      <figcaption class="gate__label" aria-hidden="true"><span>{t.hero.gate}</span><span class="gate__num">A1</span></figcaption>
+      <div class="duo duo--hero" data-duo>
+        <Image src={droneWorkshop} alt={t.hero.photoAlt} widths={[420, 720, 960]} sizes="(min-width: 1024px) 34vw, 90vw" loading="eager" fetchpriority="high" />
+      </div>
+    </figure>
+  </section>
+
+  <!-- Intro -->
+  <section class="intro wrap" aria-labelledby="intro-h">
+    <Flap as="h2" text={t.intro.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
+    <span id="intro-h" hidden>{t.intro.heading}</span>
+    <div class="intro__body">
+      {t.intro.text.map((p) => <p>{p}</p>)}
+    </div>
+    <dl class="facts">
+      {t.intro.facts.map((f) => (
+        <div class="facts__row"><dt>{U(f.k)}</dt><dd>{f.v}</dd></div>
+      ))}
+    </dl>
+  </section>
+
+  <!-- Departures -->
+  <section id="departures" class="departures wrap" aria-labelledby="dep-h">
+    <div class="section-sign">
+      <h2 id="dep-h" class="sr-only">{t.departures.heading}</h2>
+      <Flap text={t.departures.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
+      <p class="section-sign__sub">{t.departures.sub}</p>
+    </div>
+
+    <div class="table" role="list">
+      <div class="table__head" aria-hidden="true">
+        <span>{U(t.board.colTime)}</span><span>{U(t.board.colFlight)}</span><span>{U(t.board.colDestination)}</span><span>{U(t.board.colGate)}</span><span>{U(t.board.colStatus)}</span>
+      </div>
+      {t.departures.rows.map((r, i) => (
+        <article class="row" role="listitem" data-row>
+          <h3 class="row__summary">
+            <button class="row__btn" type="button" aria-expanded="false" aria-controls={`dep-${i}`} data-row-toggle>
+              <Flap text={r.time} class="flaps--sm row__time" pad={8} />
+              <Flap text={r.code} class="flaps--sm row__code" pad={6} />
+              <span class="row__dest">
+                <span class="row__org">{r.org}</span>
+                <span class="row__role">{r.destination}</span>
+              </span>
+              <span class="row__gate">{r.gate}</span>
+              <Flap text={r.status} class={`flaps--sm row__status ${statusClass(r.status)}`} pad={8} />
+              <span class="row__chev" aria-hidden="true"><Icon name="arrow-down" /></span>
+            </button>
+          </h3>
+          <div class="row__panel" id={`dep-${i}`} hidden>
+            <div class:list={['row__detail', r.photo && 'row__detail--photo']}>
+              <ul class="ticks">{r.details.map((d) => <li>{d}</li>)}</ul>
+              {r.photo && (
+                <div class="duo" data-duo>
+                  <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" />
+                </div>
+              )}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Projects / arrivals -->
+  <section id="projects" class="projects" aria-labelledby="proj-h">
+    <div class="wrap section-sign">
+      <h2 id="proj-h" class="sr-only">{t.projects.heading}</h2>
+      <Flap text={t.projects.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
+      <p class="section-sign__sub">{t.projects.sub}</p>
+    </div>
+
+    <div class="rail" data-rail>
+      <div class="rail__sticky">
+        <ol class="rail__track" data-rail-track>
+          {t.projects.items.map((p) => (
+            <li class="proj" id={`p-${p.id}`}>
+              <div class="proj__proof">
+                {p.id === 'signbridge' && (
+                  <div class="phone">
+                    <Image src={signbridgeLive} alt={lang === 'tr' ? 'SignBridgeAI kamerada bir el işaretini T harfi olarak yüzde 89,8 güvenle tanıyor' : 'SignBridgeAI recognizing a hand sign as the letter T with 89.8% confidence'} widths={[320, 520]} sizes="(min-width: 1024px) 18vw, 50vw" />
+                  </div>
+                )}
+                {p.id === 'datathon' && (
+                  <figure class="chart">
+                    <figcaption class="chart__title">{U(t.projects.chartTitle)}</figcaption>
+                    <ol class="chart__bars">
+                      {datathonScores.map((s, i) => (
+                        <li class:list={['bar', i === datathonScores.length - 1 && 'bar--win']} style={`--v:${s / maxScore}`}>
+                          <span class="bar__label">{t.projects.chartBars[i]}</span>
+                          <span class="bar__track"><span class="bar__fill" /></span>
+                          <span class="bar__val">{s.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', { maximumFractionDigits: 1 })}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </figure>
+                )}
+                {p.id === 'teknofest' && (
+                  <figure class="match">
+                    <div class="match__query">
+                      <span class="match__caret" aria-hidden="true">›</span>
+                      <span>{lang === 'tr' ? 'su geçirmez kışlık erkek bot' : 'waterproof winter boots men'}</span>
+                    </div>
+                    <ol class="match__list">
+                      {(lang === 'tr'
+                        ? [['Erkek Su Geçirmez Outdoor Bot', 0.91], ['Kürklü Kışlık Erkek Çizme', 0.84], ['Trekking Ayakkabısı Gore-Tex', 0.77], ['Erkek Günlük Sneaker', 0.31]]
+                        : [['Men’s Waterproof Outdoor Boot', 0.91], ['Men’s Fleece-Lined Winter Boot', 0.84], ['Gore-Tex Trekking Shoe', 0.77], ['Men’s Casual Sneaker', 0.31]]
+                      ).map(([name, score]) => (
+                        <li class:list={['match__item', (score as number) < 0.5 && 'is-neg']} style={`--s:${score}`}>
+                          <span>{name}</span><span class="match__score">{(score as number).toFixed(2)}</span>
+                        </li>
+                      ))}
+                    </ol>
+                    <figcaption class="match__note">{t.projects.illustrative}</figcaption>
+                  </figure>
+                )}
+                {p.id === 'dcenergy' && (
+                  <div class="browser">
+                    <div class="browser__bar" aria-hidden="true"><i /><i /><i /><span>dcenergy.com.tr</span></div>
+                    <Image src={dcenergy} alt={lang === 'tr' ? 'DC Energy sitesinin ana sayfası' : 'DC Energy website home page'} widths={[480, 900]} sizes="(min-width: 1024px) 34vw, 90vw" />
+                  </div>
+                )}
+                {p.id === 'masal' && (
+                  <div class="browser">
+                    <div class="browser__bar" aria-hidden="true"><i /><i /><i /><span>masalbahcesimaras.com</span></div>
+                    <Image src={masal} alt={lang === 'tr' ? 'Masal Bahçesi Anaokulu sitesinin ana sayfası' : 'Masal Bahçesi Preschool website home page'} widths={[480, 900]} sizes="(min-width: 1024px) 34vw, 90vw" />
+                  </div>
+                )}
+              </div>
+
+              <div class="proj__text">
+                <div class="proj__meta">
+                  <Flap text={p.code} class="flaps--sm" />
+                  <span class="proj__date">{U(p.date)}</span>
+                  <Flap text={p.status} class={`flaps--sm ${statusClass(p.status)}`} />
+                </div>
+                <h3 class="proj__name">{U(p.name)}</h3>
+                <p class="proj__claim">{p.claim}</p>
+                <p class="proj__body">{p.body}</p>
+                <p class="proj__stack">{p.stack}</p>
+                {p.link && (
+                  <a class="proj__link" href={p.link.href} target="_blank" rel="noopener">
+                    {p.link.label}<Icon name="external" />
+                  </a>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <div class="wrap more">
+      <h3 class="more__h">{U(t.projects.more.heading)}</h3>
+      <ul class="more__list">
+        {t.projects.more.rows.map((m) => (
+          <li class="more__row"><span class="more__name">{m.name}</span><span class="more__date">{m.date}</span><p>{m.text}</p></li>
+        ))}
+      </ul>
+
+      {repos.length > 0 && (
+        <div class="gh">
+          <h3 class="more__h">{U(t.projects.githubHeading)}</h3>
+          <ul class="gh__list">
+            {repos.map((r) => (
+              <li>
+                <a class="gh__row" href={r.html_url} target="_blank" rel="noopener">
+                  <span class="gh__name">{r.name}</span>
+                  <span class="gh__desc">{r.description ?? ''}</span>
+                  <span class="gh__lang">{r.language ?? '—'}</span>
+                  <span class="gh__date"><span class="sr-only">{t.projects.githubUpdated} </span>{monthFmt.format(new Date(r.pushed_at))}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a class="proj__link" href={links.github} target="_blank" rel="noopener">{t.projects.githubAll}<Icon name="external" /></a>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Beyond code -->
+  <section id="beyond" class="beyond wrap" aria-labelledby="beyond-h">
+    <div class="section-sign">
+      <h2 id="beyond-h" class="sr-only">{t.beyond.heading}</h2>
+      <Flap text={t.beyond.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
+      <p class="section-sign__sub">{t.beyond.sub}</p>
+    </div>
+
+    <div class="layover">
+      <div class="layover__story">
+        <div class="story">
+          <h3 class="story__title">{U(t.beyond.taekwondoTitle)}</h3>
+          <p>{t.beyond.taekwondoText}</p>
+        </div>
+        <div class="story">
+          <h3 class="story__title">{U(t.beyond.copTitle)}</h3>
+          <p>{t.beyond.copText}</p>
+        </div>
+      </div>
+      <div class="duo layover__photo" data-duo>
+        <Image src={quadcopter} alt={t.beyond.droneAlt} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" />
+      </div>
+    </div>
+
+    <h3 class="more__h">{U(t.beyond.travelHeading)}</h3>
+    <ul class="travel">
+      {t.beyond.travel.map((d) => (
+        <li class="travel__item">
+          <div class="duo" data-duo>
+            <Image src={photos[d.photo as keyof typeof photos]} alt={d.alt} widths={[400, 640]} sizes="(min-width: 1024px) 30vw, 90vw" />
+          </div>
+          <div class="travel__cap">
+            <Flap text={d.code} class="flaps--md" />
+            <span>{U(d.city)}</span>
+          </div>
+        </li>
+      ))}
+    </ul>
+
+    <h3 class="more__h">{U(t.beyond.certsHeading)}</h3>
+    <ul class="certs">
+      {t.beyond.certs.map((c) => (
+        <li class="cert">
+          {c.img ? (
+            <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener">
+              <Image src={certImgs[c.img as keyof typeof certImgs]} alt="" widths={[360]} sizes="360px" class="cert__img" />
+              <span class="cert__name">{c.name}</span>
+              <span class="cert__by">{c.by}</span>
+              <span class="cert__foot"><span>{c.date}</span><span class="cert__view">{t.beyond.viewCert}<Icon name="external" /></span></span>
+            </a>
+          ) : (
+            <div class="cert__link cert__link--plain">
+              <span class="cert__stub" aria-hidden="true"><Flap text="SV" /></span>
+              <span class="cert__name">{c.name}</span>
+              <span class="cert__by">{c.by}</span>
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="contact" aria-labelledby="contact-h">
+    <div class="wrap contact__grid">
+      <div class="contact__sign">
+        <h2 id="contact-h" class="contact__h"><Icon name="arrow" class="icon contact__arrow" />{U(t.contact.heading)}</h2>
+        <p class="contact__lede">{t.contact.lede}</p>
+        <a class="contact__mail" href={`mailto:${links.email}`}>{links.email}</a>
+        <p class="contact__or">{U(t.contact.or)}</p>
+        <ul class="socials">
+          <li><a href={links.linkedin} target="_blank" rel="noopener"><Icon name="linkedin" />LinkedIn</a></li>
+          <li><a href={links.github} target="_blank" rel="noopener"><Icon name="github" />GitHub</a></li>
+          <li><a href={links.kaggle} target="_blank" rel="noopener"><Icon name="kaggle" />Kaggle</a></li>
+          <li><a href={links.instagram} target="_blank" rel="noopener"><Icon name="instagram" />Instagram</a></li>
+          <li><a href={links.cv} download><Icon name="download" />{U(t.cvLong)}</a></li>
+        </ul>
+      </div>
+
+      <form class="form" data-form novalidate
+        data-subject={t.contact.subject} data-sending={U(t.contact.sending)} data-send={U(t.contact.send)}
+        data-ok={t.contact.ok} data-error={t.contact.error} data-invalid={t.contact.invalid} data-email={links.email}>
+        <label class="field">
+          <span class="field__label">{U(t.contact.name)}</span>
+          <input name="name" type="text" autocomplete="name" required maxlength="120" />
+        </label>
+        <label class="field">
+          <span class="field__label">{U(t.contact.email)}</span>
+          <input name="email" type="email" autocomplete="email" required maxlength="200" />
+        </label>
+        <label class="field">
+          <span class="field__label">{U(t.contact.message)}</span>
+          <textarea name="message" rows="6" required maxlength="5000"></textarea>
+        </label>
+        <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <button class="form__send" type="submit"><span data-send-label>{U(t.contact.send)}</span><Icon name="arrow" /></button>
+        <p class="form__status" role="status" aria-live="polite" data-form-status></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="footer wrap">
+  <span>© 2026 · {t.footer.built}</span>
+  <a href="#main">{t.footer.top}</a>
+</footer>
+
+<script>
+  import '../scripts/main';
+</script>

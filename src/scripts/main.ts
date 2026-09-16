@@ -80,7 +80,6 @@ if (!reduced) {
   // Hero: name, then role, then the status blinks before its flaps turn.
   (async () => {
     const [first, last, role, dest, status] = heroFlaps;
-    const heroPhoto = document.querySelector<HTMLElement>('.duo--hero');
     await Promise.all([first && flap(first, 150), last && flap(last, 420)]);
     if (role) await flap(role);
     if (dest) flap(dest);
@@ -90,7 +89,6 @@ if (!reduced) {
       status.classList.remove('is-announcing');
       await flap(status);
     }
-    heroPhoto?.classList.add('is-arrived');
   })();
 
   // Everything else turns when it first scrolls into view.
@@ -115,8 +113,6 @@ if (!reduced) {
     { rootMargin: '0px 0px -12% 0px' },
   );
   otherFlaps.forEach((b) => io.observe(b));
-} else {
-  document.querySelector('.duo--hero')?.classList.add('is-arrived');
 }
 
 /* ---------- Departure rows ---------- */
@@ -144,16 +140,6 @@ document.querySelectorAll<HTMLButtonElement>('[data-row-toggle]').forEach((btn) 
     lenis?.resize();
   });
 });
-
-/* ---------- Duotone photos: colour on engage (touch: when centred) ---------- */
-const coarse = window.matchMedia('(hover: none)').matches;
-if (coarse) {
-  const photoIO = new IntersectionObserver(
-    (entries) => entries.forEach((e) => e.target.classList.toggle('is-engaged', e.isIntersecting)),
-    { rootMargin: '-40% 0px -40% 0px' },
-  );
-  document.querySelectorAll('[data-duo]:not(.duo--hero)').forEach((d) => photoIO.observe(d));
-}
 
 /* ---------- Projects rail: vertical scroll drives a horizontal track ---------- */
 const rail = document.querySelector<HTMLElement>('[data-rail]');
@@ -190,6 +176,118 @@ if (rail && track) {
   });
   if (lenis) lenis.on('scroll', update);
   else window.addEventListener('scroll', update, { passive: true });
+}
+
+/* ---------- Scroll reveals ---------- */
+if (!reduced) {
+  const revealIO = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('is-in');
+        revealIO.unobserve(e.target);
+      }),
+    { rootMargin: '0px 0px -10% 0px' },
+  );
+  document.querySelectorAll('[data-reveal]').forEach((el) => revealIO.observe(el));
+} else {
+  document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-in'));
+}
+
+/* ---------- Signage bands: vertical scroll pushes them sideways ---------- */
+const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-band]')).map((band) => ({
+  band,
+  track: band.querySelector<HTMLElement>('[data-band-track]')!,
+  dir: Number(band.dataset.band) || -1,
+}));
+function updateBands() {
+  const vh = window.innerHeight;
+  for (const { band, track, dir } of bands) {
+    const r = band.getBoundingClientRect();
+    if (r.bottom < -200 || r.top > vh + 200) continue;
+    const third = track.scrollWidth / 3;
+    // progress through the viewport, mapped to up to one third of the track
+    const p = (vh - r.top) / (vh + r.height);
+    const x = dir < 0 ? -p * third * 0.9 : -third + p * third * 0.9;
+    track.style.transform = `translate3d(${x}px,0,0)`;
+  }
+}
+
+/* ---------- The plane: takes off, cruises across the page, lands before contact ---------- */
+const plane = document.querySelector<HTMLElement>('[data-plane]');
+const planeFlip = document.querySelector<HTMLElement>('[data-plane-flip]');
+const runway = document.querySelector<HTMLElement>('[data-runway]');
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const smooth = (t: number) => t * t * (3 - 2 * t);
+
+const TAKEOFF = 0.1;
+const LANDING = 0.86;
+const PHI0 = Math.asin(0.12 / 0.38); // cruise starts at x = 0.62
+const PHI_SPAN = 2 * Math.PI + (2 * Math.PI - Math.asin(0.2 / 0.38)) - PHI0; // ends at x = 0.30 heading right
+
+function planeAt(p: number): { x: number; y: number } {
+  // x as a fraction of viewport width, y as a fraction of height (nose-line of the plane)
+  if (p < TAKEOFF) {
+    const t = p / TAKEOFF;
+    const lift = smooth(clamp01((t - 0.45) / 0.55));
+    return { x: lerp(0.06, 0.62, t * t), y: lerp(0.93, 0.3, lift) };
+  }
+  if (p < LANDING) {
+    const t = (p - TAKEOFF) / (LANDING - TAKEOFF);
+    const phi = PHI0 + t * PHI_SPAN;
+    const ph = t * PHI_SPAN;
+    return { x: 0.5 + 0.38 * Math.sin(phi), y: 0.3 + 0.07 * (1 - Math.cos(ph * 0.9)) };
+  }
+  const end = planeAt(LANDING - 1e-6);
+  const t = (p - LANDING) / (1 - LANDING);
+  if (t < 0.72) {
+    const g = t / 0.72;
+    return { x: lerp(end.x, 0.66, g), y: lerp(end.y, 0.93, smooth(g)) };
+  }
+  const r = (t - 0.72) / 0.28;
+  return { x: lerp(0.66, 0.8, 1 - (1 - r) * (1 - r)), y: 0.93 };
+}
+
+let planeDir = 1;
+function updatePlane() {
+  if (!plane || !planeFlip || !runway) return;
+  // touch down just before the closing band and the contact sign scroll into view
+  const arrival = document.querySelector<HTMLElement>('[data-band="1"]') ?? document.getElementById('contact');
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const endScroll = Math.max(1, (arrival ? arrival.offsetTop : document.body.scrollHeight) - vh * 1.02);
+  const p = clamp01(window.scrollY / endScroll);
+
+  const a = planeAt(p);
+  const b = planeAt(Math.min(1, p + 0.0025));
+  const dx = (b.x - a.x) * vw;
+  const dy = (b.y - a.y) * vh;
+  if (Math.abs(dx) > 0.2) planeDir = dx > 0 ? 1 : -1;
+  const onGround = a.y >= 0.929;
+  const angle = onGround ? 0 : Math.max(-16, Math.min(16, (Math.atan2(dy, Math.abs(dx) || 1) * 180) / Math.PI)) * planeDir;
+
+  const w = plane.offsetWidth;
+  const h = w * 0.36;
+  const px = a.x * vw - w / 2;
+  const py = a.y * vh - h * 0.84; // wheels sit on the runway line
+  plane.style.transform = `translate3d(${px}px,${py}px,0) rotate(${angle}deg)`;
+  planeFlip.style.transform = `scaleX(${planeDir})`;
+  plane.classList.toggle('gear-down', p < TAKEOFF * 0.7 || p > LANDING + (1 - LANDING) * 0.35);
+  plane.classList.add('is-ready');
+  runway.style.opacity = String(Math.max(1 - p / (TAKEOFF * 0.8), smooth(clamp01((p - LANDING - 0.03) / 0.08))));
+}
+
+if (!reduced) {
+  const onFrame = () => {
+    updateBands();
+    updatePlane();
+  };
+  onFrame();
+  if (lenis) lenis.on('scroll', onFrame);
+  else window.addEventListener('scroll', onFrame, { passive: true });
+  window.addEventListener('resize', onFrame);
+  window.addEventListener('load', onFrame);
 }
 
 /* ---------- Top bar state ---------- */

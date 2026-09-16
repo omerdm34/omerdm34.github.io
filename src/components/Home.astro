@@ -4,6 +4,7 @@ import Flap from './Flap.astro';
 import Icon from './Icon.astro';
 import { content, links, datathonScores, type Lang } from '../i18n/content';
 
+import heroPhoto from '../assets/photos/hero.jpg';
 import droneWorkshop from '../assets/photos/drone-workshop.jpg';
 import aselsan from '../assets/photos/aselsan.jpg';
 import quadcopter from '../assets/photos/quadcopter.jpg';
@@ -51,6 +52,10 @@ const statusClass = (s: string) =>
   ['LIVE', 'YAYINDA', 'EN ROUTE', 'YOLDA', 'BOARDING', 'BİNİŞ'].includes(s) ? 'status status--live' : 'status';
 const other = lang === 'tr' ? '/' : '/tr/';
 const U = (v: string) => v.toLocaleUpperCase(lang);
+const stackBand = ['PYTHON', 'KOTLIN', 'TYPESCRIPT', 'C++', 'QML', 'PYTORCH', 'TENSORFLOW LITE', 'MEDIAPIPE', 'SCIKIT-LEARN', 'LIGHTGBM', 'NEXT.JS', 'ASTRO', 'CLOUDFLARE WORKERS', 'UNREAL ENGINE 5', 'ESP32'];
+const placesBand = lang === 'tr'
+  ? ['ANKARA', 'İSTANBUL', 'ELAZIĞ', 'MALATYA', 'TÂRGU MUREȘ', 'VİYANA', 'PRAG', 'ROMA']
+  : ['ANKARA', 'İSTANBUL', 'ELAZIĞ', 'MALATYA', 'TÂRGU MUREȘ', 'VIENNA', 'PRAGUE', 'ROME'];
 ---
 <header class="topbar" data-topbar>
   <a class="brand" href={lang === 'tr' ? '/tr/' : '/'} aria-label="Ömer Faruk Erdem">
@@ -72,6 +77,28 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
     </a>
   </div>
 </header>
+
+<div class="sky" aria-hidden="true">
+  <div class="runway" data-runway><span class="runway__lights"></span></div>
+  <div class="plane" data-plane>
+    <div class="plane__flip" data-plane-flip>
+      <svg class="plane__svg" viewBox="0 0 200 72" width="200" height="72" focusable="false">
+        <path class="plane__body" d="M9 35c0-5 5-8.5 14-8.5h133c17 0 32 3.6 40 8.5-8 4.9-23 8.5-40 8.5H23c-9 0-14-3.5-14-8.5Z" />
+        <path class="plane__body" d="M15 28 5 5h14.5L45 27Z" />
+        <path class="plane__body" d="M17 35 3 41.5h9.5L37 38.5Z" />
+        <path class="plane__body" d="M90 39 58 64h15.5l50-24Z" />
+        <rect class="plane__body" x="80" y="44" width="28" height="10" rx="5" />
+        <path class="plane__win" d="M42 32.5h108" />
+        <path class="plane__win plane__cockpit" d="M178 30.5l9 2.4" />
+        <g class="plane__gear">
+          <path d="M66 43v12M170 43v11" />
+          <circle cx="66" cy="58.5" r="3.6" />
+          <circle cx="170" cy="57.5" r="3.2" />
+        </g>
+      </svg>
+    </div>
+  </div>
+</div>
 
 <main id="main">
   <!-- Hero: the board -->
@@ -107,8 +134,8 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
 
     <figure class="hero__gate">
       <figcaption class="gate__label" aria-hidden="true"><span>{t.hero.gate}</span><span class="gate__num">A1</span></figcaption>
-      <div class="duo duo--hero" data-duo>
-        <Image src={droneWorkshop} alt={t.hero.photoAlt} widths={[420, 720, 960]} sizes="(min-width: 1024px) 34vw, 90vw" loading="eager" fetchpriority="high" />
+      <div class="duo duo--hero">
+        <Image src={heroPhoto} alt={t.hero.photoAlt} widths={[400]} sizes="(min-width: 1000px) 30vw, 90vw" loading="eager" fetchpriority="high" />
       </div>
     </figure>
   </section>
@@ -127,9 +154,15 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
     </dl>
   </section>
 
+  <div class="band band--sign" data-band="-1" aria-hidden="true">
+    <div class="band__track" data-band-track>
+      {[0, 1, 2].map(() => stackBand.map((w) => <span class="band__item">{w}<Icon name="plane" class="icon band__icon" /></span>))}
+    </div>
+  </div>
+
   <!-- Departures -->
   <section id="departures" class="departures wrap" aria-labelledby="dep-h">
-    <div class="section-sign">
+    <div class="section-sign" data-reveal="left">
       <h2 id="dep-h" class="sr-only">{t.departures.heading}</h2>
       <Flap text={t.departures.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
       <p class="section-sign__sub">{t.departures.sub}</p>
@@ -140,7 +173,7 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
         <span>{U(t.board.colTime)}</span><span>{U(t.board.colFlight)}</span><span>{U(t.board.colDestination)}</span><span>{U(t.board.colGate)}</span><span>{U(t.board.colStatus)}</span>
       </div>
       {t.departures.rows.map((r, i) => (
-        <article class="row" role="listitem" data-row>
+        <article class="row" role="listitem" data-row data-reveal="right" style={`--d:${i * 70}ms`}>
           <h3 class="row__summary">
             <button class="row__btn" type="button" aria-expanded="false" aria-controls={`dep-${i}`} data-row-toggle>
               <Flap text={r.time} class="flaps--sm row__time" pad={8} />
@@ -158,7 +191,7 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
             <div class:list={['row__detail', r.photo && 'row__detail--photo']}>
               <ul class="ticks">{r.details.map((d) => <li>{d}</li>)}</ul>
               {r.photo && (
-                <div class="duo" data-duo>
+                <div class="duo">
                   <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" />
                 </div>
               )}
@@ -171,7 +204,7 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
 
   <!-- Projects / arrivals -->
   <section id="projects" class="projects" aria-labelledby="proj-h">
-    <div class="wrap section-sign">
+    <div class="wrap section-sign" data-reveal="left">
       <h2 id="proj-h" class="sr-only">{t.projects.heading}</h2>
       <Flap text={t.projects.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
       <p class="section-sign__sub">{t.projects.sub}</p>
@@ -288,7 +321,7 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
 
   <!-- Beyond code -->
   <section id="beyond" class="beyond wrap" aria-labelledby="beyond-h">
-    <div class="section-sign">
+    <div class="section-sign" data-reveal="left">
       <h2 id="beyond-h" class="sr-only">{t.beyond.heading}</h2>
       <Flap text={t.beyond.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
       <p class="section-sign__sub">{t.beyond.sub}</p>
@@ -296,25 +329,25 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
 
     <div class="layover">
       <div class="layover__story">
-        <div class="story">
+        <div class="story" data-reveal="left">
           <h3 class="story__title">{U(t.beyond.taekwondoTitle)}</h3>
           <p>{t.beyond.taekwondoText}</p>
         </div>
-        <div class="story">
+        <div class="story" data-reveal="left" style="--d:120ms">
           <h3 class="story__title">{U(t.beyond.copTitle)}</h3>
           <p>{t.beyond.copText}</p>
         </div>
       </div>
-      <div class="duo layover__photo" data-duo>
+      <div class="duo layover__photo" data-reveal="photo">
         <Image src={quadcopter} alt={t.beyond.droneAlt} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" />
       </div>
     </div>
 
     <h3 class="more__h">{U(t.beyond.travelHeading)}</h3>
     <ul class="travel">
-      {t.beyond.travel.map((d) => (
-        <li class="travel__item">
-          <div class="duo" data-duo>
+      {t.beyond.travel.map((d, i) => (
+        <li class="travel__item" data-reveal={i % 2 ? 'up' : i === 0 ? 'left' : 'right'} style={`--d:${i * 90}ms`}>
+          <div class="duo" data-reveal="photo" style={`--d:${i * 90 + 120}ms`}>
             <Image src={photos[d.photo as keyof typeof photos]} alt={d.alt} widths={[400, 640]} sizes="(min-width: 1024px) 30vw, 90vw" />
           </div>
           <div class="travel__cap">
@@ -327,8 +360,8 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
 
     <h3 class="more__h">{U(t.beyond.certsHeading)}</h3>
     <ul class="certs">
-      {t.beyond.certs.map((c) => (
-        <li class="cert">
+      {t.beyond.certs.map((c, i) => (
+        <li class="cert" data-reveal="right" style={`--d:${i * 70}ms`}>
           {c.img ? (
             <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener">
               <Image src={certImgs[c.img as keyof typeof certImgs]} alt="" widths={[360]} sizes="360px" class="cert__img" />
@@ -348,10 +381,16 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
     </ul>
   </section>
 
+  <div class="band" data-band="1" aria-hidden="true">
+    <div class="band__track" data-band-track>
+      {[0, 1, 2, 3].map(() => placesBand.map((w) => <span class="band__item">{w}<span class="band__dot" /></span>))}
+    </div>
+  </div>
+
   <!-- Contact -->
   <section id="contact" class="contact" aria-labelledby="contact-h">
     <div class="wrap contact__grid">
-      <div class="contact__sign">
+      <div class="contact__sign" data-reveal="left">
         <h2 id="contact-h" class="contact__h"><Icon name="arrow" class="icon contact__arrow" />{U(t.contact.heading)}</h2>
         <p class="contact__lede">{t.contact.lede}</p>
         <a class="contact__mail" href={`mailto:${links.email}`}>{links.email}</a>
@@ -365,7 +404,7 @@ const U = (v: string) => v.toLocaleUpperCase(lang);
         </ul>
       </div>
 
-      <form class="form" data-form novalidate
+      <form class="form" data-reveal="right" data-form novalidate
         data-subject={t.contact.subject} data-sending={U(t.contact.sending)} data-send={U(t.contact.send)}
         data-ok={t.contact.ok} data-error={t.contact.error} data-invalid={t.contact.invalid} data-email={links.email}>
         <label class="field">

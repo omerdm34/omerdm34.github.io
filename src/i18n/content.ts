@@ -55,7 +55,7 @@ const en = {
     ctaPrimary: 'Get in touch',
     ctaSecondary: 'See the work',
     gate: 'GATE',
-    photoAlt: 'Ömer in a hard hat next to an agricultural drone in a workshop',
+    photoAlt: 'Ömer with arms crossed on a wooden pier by a lake at dusk',
   },
   intro: {
     boarding: 'Now boarding',
@@ -298,7 +298,7 @@ const tr: Content = {
     ctaPrimary: 'İletişime geç',
     ctaSecondary: 'İşlerime bak',
     gate: 'KAPI',
-    photoAlt: 'Atölyede baretle bir zirai dronun yanında duran Ömer',
+    photoAlt: 'Akşamüstü göl kenarındaki ahşap iskelede kollarını kavuşturmuş Ömer',
   },
   intro: {
     boarding: 'Biniş başladı',

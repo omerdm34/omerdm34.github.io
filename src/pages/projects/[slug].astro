@@ -1,0 +1,14 @@
+---
+import Base from '../../layouts/Base.astro';
+import CaseStudy from '../../components/CaseStudy.astro';
+import { caseStudies } from '../../i18n/projects';
+
+export function getStaticPaths() {
+  return caseStudies.en.map((c) => ({ params: { slug: c.slug } }));
+}
+const { slug } = Astro.params;
+const c = caseStudies.en.find((x) => x.slug === slug)!;
+---
+<Base lang="en" title={c.title} description={c.description} path={`/projects/${slug}/`} altPath={`/tr/projects/${slug}/`}>
+  <CaseStudy lang="en" slug={slug!} />
+</Base>

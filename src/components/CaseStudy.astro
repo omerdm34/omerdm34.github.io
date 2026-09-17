@@ -1,0 +1,162 @@
+---
+import { Image } from 'astro:assets';
+import Flap from './Flap.astro';
+import Icon from './Icon.astro';
+import { content, links, type Lang } from '../i18n/content';
+import { caseStudies, caseUi, datathonModels } from '../i18n/projects';
+
+import signbridgeLive from '../assets/projects/signbridge-live.png';
+import signbridgeGuide from '../assets/projects/signbridge/guide.png';
+import signbridgeText from '../assets/projects/signbridge/text.png';
+
+interface Props { lang: Lang; slug: string }
+const { lang, slug } = Astro.props;
+const t = content[lang];
+const ui = caseUi[lang];
+const all = caseStudies[lang];
+const idx = all.findIndex((c) => c.slug === slug);
+const c = all[idx];
+const next = all[(idx + 1) % all.length];
+const U = (v: string) => v.toLocaleUpperCase(lang);
+const home = lang === 'tr' ? '/tr/' : '/';
+const base = lang === 'tr' ? '/tr/projects/' : '/projects/';
+const other = (lang === 'tr' ? '/projects/' : '/tr/projects/') + slug + '/';
+
+const screens =
+  slug === 'signbridge-ai'
+    ? [
+        { src: signbridgeLive, alt: lang === 'tr' ? 'Kamera modu: T harfi yüzde 89,8 güvenle tanınıyor' : 'Camera mode recognizing the letter T with 89.8% confidence', cap: lang === 'tr' ? 'Kamera modu' : 'Camera mode' },
+        { src: signbridgeText, alt: lang === 'tr' ? 'Metin modu: yazılan metni çevirme ve seslendirme' : 'Text mode for typing, translating and speaking', cap: lang === 'tr' ? 'Metin modu' : 'Text mode' },
+        { src: signbridgeGuide, alt: lang === 'tr' ? 'Kamera rehberi ve ASL alfabe referansı' : 'Camera guide with an ASL alphabet reference', cap: lang === 'tr' ? 'Rehber' : 'Guide' },
+      ]
+    : [];
+const maxMse = datathonModels[0].mse;
+const fmt = (n: number) => n.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', { maximumFractionDigits: 2 });
+---
+<header class="topbar is-solid" data-topbar>
+  <a class="brand" href={home} aria-label="Ömer Faruk Erdem">
+    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span>
+  </a>
+  <nav class="topnav" aria-label={lang === 'tr' ? 'Bölümler' : 'Sections'}>
+    <a href={home + '#departures'}>{U(t.nav.departures)}</a>
+    <a href={home + '#projects'}>{U(t.nav.projects)}</a>
+    <a href={home + '#beyond'}>{U(t.nav.beyond)}</a>
+    <a href={home + '#contact'}>{U(t.nav.contact)}</a>
+  </nav>
+  <div class="topbar__actions">
+    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'} aria-label={t.langSwitch.label}>
+      <span class:list={['lang__opt', lang === 'en' && 'is-on']}>EN</span>
+      <span class:list={['lang__opt', lang === 'tr' && 'is-on']}>TR</span>
+    </a>
+    <a class="btn btn--ghost btn--sm" href={links.cv} download aria-label={t.cvLong}>
+      <Icon name="download" /><span>{t.cv}</span>
+    </a>
+  </div>
+</header>
+
+<main id="main" class="case">
+  <section class="case__head wrap">
+    <a class="case__back" href={home + '#p-' + c.homeId}><Icon name="arrow" class="icon case__back-icon" />{U(ui.back)}</a>
+    <div class="proj__meta case__meta">
+      <Flap text={c.code} class="flaps--sm" />
+      <span class="proj__date">{U(ui.caseStudy)} · {c.date}</span>
+      <Flap text={c.status} class="flaps--sm status" />
+    </div>
+    <h1 class="case__title"><Flap text={U(c.name)} class="flaps--lg" /></h1>
+    <p class="case__lede" data-reveal="left">{c.lede}</p>
+    <dl class="facts case__facts" data-reveal="right">
+      {c.facts.map((f) => <div class="facts__row"><dt>{U(f.k)}</dt><dd>{f.v}</dd></div>)}
+    </dl>
+  </section>
+
+  {screens.length > 0 && (
+    <section class="case__screens" aria-label={ui.gallery}>
+      <ul class="screens wrap">
+        {screens.map((s, i) => (
+          <li class="screens__item" data-reveal="up" style={`--d:${i * 110}ms`}>
+            <div class="phone"><Image src={s.src} alt={s.alt} widths={[320, 560]} sizes="(min-width: 900px) 22vw, 70vw" /></div>
+            <span class="screens__cap">{U(s.cap)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {slug === 'datathon-2026' && (
+    <section class="case__section wrap" aria-labelledby="models-h">
+      <h2 id="models-h" class="more__h" data-reveal="left">{U(ui.models)}</h2>
+      <ol class="chart__bars case__models">
+        {datathonModels.map((m, i) => (
+          <li class:list={['bar', 'bar--wide', i === datathonModels.length - 1 && 'bar--win']} style={`--v:${m.mse / maxMse};--d:${i * 50}ms`} data-reveal="right">
+            <span class="bar__label">{lang === 'tr' ? m.nameTr : m.name}</span>
+            <span class="bar__track"><span class="bar__fill" /></span>
+            <span class="bar__val">{fmt(m.mse)}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="case__note">{c.resultsNote}</p>
+    </section>
+  )}
+
+  <section class="case__section wrap case__split" aria-labelledby="problem-h">
+    <h2 id="problem-h" class="more__h" data-reveal="left">{U(ui.problem)}</h2>
+    <div class="case__prose" data-reveal="up">{c.problem.map((p) => <p>{p}</p>)}</div>
+  </section>
+
+  <section class="case__section wrap" aria-labelledby="approach-h">
+    <h2 id="approach-h" class="more__h" data-reveal="left">{U(ui.approach)}</h2>
+    <ol class="route">
+      {c.steps.map((s, i) => (
+        <li class="route__stop" data-reveal="right" style={`--d:${i * 60}ms`}>
+          <span class="route__gate" aria-hidden="true"><Flap text={String(i + 1).padStart(2, '0')} class="flaps--md" /></span>
+          <div>
+            <h3 class="route__title">{U(s.title)}</h3>
+            <p class="route__text">{s.text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="case__section wrap" aria-labelledby="results-h">
+    <h2 id="results-h" class="more__h" data-reveal="left">{U(ui.results)}</h2>
+    <ul class="readouts">
+      {c.results.map((r, i) => (
+        <li class="readout" data-reveal="up" style={`--d:${i * 90}ms`}>
+          <Flap text={r.value} class="flaps--lg readout__value" />
+          <span class="readout__label">{r.label}</span>
+        </li>
+      ))}
+    </ul>
+    {slug !== 'datathon-2026' && c.resultsNote && <p class="case__note">{c.resultsNote}</p>}
+  </section>
+
+  <section class="case__section wrap case__split" aria-labelledby="learned-h">
+    <h2 id="learned-h" class="more__h" data-reveal="left">{U(ui.learned)}</h2>
+    <ul class="ticks case__learned" data-reveal="up">{c.learned.map((l) => <li>{l}</li>)}</ul>
+  </section>
+
+  <section class="case__section wrap case__split" aria-labelledby="stack-h">
+    <h2 id="stack-h" class="more__h" data-reveal="left">{U(ui.stack)}</h2>
+    <div data-reveal="up">
+      <ul class="tags">{c.stack.map((s) => <li>{s}</li>)}</ul>
+      {c.links.map((l) => (
+        <a class="proj__link" href={l.href} target="_blank" rel="noopener">{l.label}<Icon name="external" /></a>
+      ))}
+    </div>
+  </section>
+
+  <a class="case__next" href={base + next.slug + '/'}>
+    <span class="case__next-label">{U(ui.next)}</span>
+    <span class="case__next-name">{U(next.name)}<Icon name="arrow" class="icon case__next-icon" /></span>
+  </a>
+</main>
+
+<footer class="footer wrap">
+  <span>© 2026 · {t.footer.built}</span>
+  <a href={home}>{t.footer.top === 'Back to top' ? 'Home' : 'Ana sayfa'}</a>
+</footer>
+
+<script>
+  import '../scripts/main';
+</script>

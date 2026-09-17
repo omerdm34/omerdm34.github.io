@@ -3,6 +3,7 @@ import { Image, getImage } from 'astro:assets';
 import Flap from './Flap.astro';
 import Icon from './Icon.astro';
 import { content, links, datathonScores, type Lang } from '../i18n/content';
+import { caseStudies, caseUi } from '../i18n/projects';
 
 import heroPhoto from '../assets/photos/hero.jpg';
 import droneWorkshop from '../assets/photos/drone-workshop.jpg';
@@ -300,6 +301,11 @@ const placesBand = lang === 'tr'
                 <p class="proj__claim">{p.claim}</p>
                 <p class="proj__body">{p.body}</p>
                 <p class="proj__stack">{p.stack}</p>
+                {caseStudies[lang].some((c) => c.homeId === p.id) && (
+                  <a class="sign sign--sm proj__case" href={`${lang === 'tr' ? '/tr' : ''}/projects/${caseStudies[lang].find((c) => c.homeId === p.id)!.slug}/`}>
+                    <span>{U(caseUi[lang].readCase)}</span><Icon name="arrow" />
+                  </a>
+                )}
                 {p.link && (
                   <a class="proj__link" href={p.link.href} target="_blank" rel="noopener">
                     {p.link.label}<Icon name="external" />

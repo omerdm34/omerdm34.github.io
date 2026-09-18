@@ -93,6 +93,16 @@ const placesBand = lang === 'tr'
   </div>
 </header>
 
+<div class="preloader" data-preloader aria-hidden="true">
+  <div class="preloader__board">
+    <div class="preloader__head"><Icon name="plane" class="icon" /><span>{t.board.heading}</span><span class="preloader__status">{t.preloader.status}</span></div>
+    <Flap text="ÖMER FARUK" class="flaps--xl preloader__line" />
+    <Flap text="ERDEM" class="flaps--xl preloader__line" />
+    <Flap text={t.preloader.welcome} class="flaps--md preloader__welcome" />
+    <div class="preloader__bar"><span data-preloader-bar></span></div>
+  </div>
+</div>
+
 <div class="sky" aria-hidden="true">
   <div class="runway" data-runway><span class="runway__lights"></span></div>
   <div class="plane" data-plane>
@@ -157,9 +167,10 @@ const placesBand = lang === 'tr'
 
   <!-- Intro -->
   <section class="intro wrap" aria-labelledby="intro-h">
+    <span class="ghost" data-ghost="-1" aria-hidden="true">{U(t.intro.heading)}</span>
     <Flap as="h2" text={t.intro.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
     <span id="intro-h" hidden>{t.intro.heading}</span>
-    <div class="intro__body">
+    <div class="intro__body" data-words>
       {t.intro.text.map((p) => <p>{p}</p>)}
     </div>
     <dl class="facts">
@@ -167,6 +178,18 @@ const placesBand = lang === 'tr'
         <div class="facts__row"><dt>{U(f.k)}</dt><dd>{f.v}</dd></div>
       ))}
     </dl>
+  </section>
+
+  <section class="stats wrap" aria-labelledby="stats-h">
+    <h2 id="stats-h" class="more__h" data-reveal="left">{U(t.stats.heading)}</h2>
+    <ul class="stats__grid">
+      {t.stats.items.map((st, i) => (
+        <li class="stat" data-reveal="up" style={`--d:${i * 90}ms`}>
+          <span class="stat__value"><span data-count={st.value}>{st.value}</span>{st.suffix}</span>
+          <span class="stat__label">{st.label}</span>
+        </li>
+      ))}
+    </ul>
   </section>
 
   <div class="band band--sign" data-band="-1" aria-hidden="true">
@@ -177,6 +200,7 @@ const placesBand = lang === 'tr'
 
   <!-- Departures -->
   <section id="departures" class="departures wrap" aria-labelledby="dep-h">
+    <span class="ghost" data-ghost="1" aria-hidden="true">{U(t.departures.heading)}</span>
     <div class="section-sign" data-reveal="left">
       <h2 id="dep-h" class="sr-only">{t.departures.heading}</h2>
       <Flap text={t.departures.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
@@ -212,7 +236,7 @@ const placesBand = lang === 'tr'
               </div>
               {r.photo && (
                 <figure class="row__figure">
-                  <div class="duo">
+                  <div class="duo" data-parallax>
                     <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" style={`object-position:${photoPos[r.photo] ?? '50% 50%'}`} />
                   </div>
                   {r.photoCredit && <figcaption class="row__credit">{t.departures.photoBy}: {r.photoCredit}</figcaption>}
@@ -238,7 +262,7 @@ const placesBand = lang === 'tr'
         <ol class="rail__track" data-rail-track>
           {t.projects.items.map((p) => (
             <li class="proj" id={`p-${p.id}`}>
-              <div class="proj__proof">
+              <div class="proj__proof" data-cursor={t.cursor.view}>
                 {p.id === 'signbridge' && (
                   <div class="phone">
                     <Image src={signbridgeLive} alt={lang === 'tr' ? 'SignBridgeAI kamerada bir el işaretini T harfi olarak yüzde 89,8 güvenle tanıyor' : 'SignBridgeAI recognizing a hand sign as the letter T with 89.8% confidence'} widths={[320, 520]} sizes="(min-width: 1024px) 18vw, 50vw" />
@@ -349,6 +373,7 @@ const placesBand = lang === 'tr'
 
   <!-- Beyond code -->
   <section id="beyond" class="beyond wrap" aria-labelledby="beyond-h">
+    <span class="ghost" data-ghost="-1" aria-hidden="true">{U(t.beyond.heading)}</span>
     <div class="section-sign" data-reveal="left">
       <h2 id="beyond-h" class="sr-only">{t.beyond.heading}</h2>
       <Flap text={t.beyond.heading.toLocaleUpperCase(lang)} class="flaps--lg" />
@@ -366,7 +391,7 @@ const placesBand = lang === 'tr'
           <p>{t.beyond.copText}</p>
         </div>
       </div>
-      <div class="duo layover__photo" data-reveal="photo">
+      <div class="duo layover__photo" data-reveal="photo" data-parallax>
         <Image src={quadcopter} alt={t.beyond.droneAlt} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" />
       </div>
     </div>
@@ -375,7 +400,7 @@ const placesBand = lang === 'tr'
     <ul class="travel">
       {t.beyond.travel.map((d, i) => (
         <li class="travel__item" data-reveal={i % 2 ? 'up' : i === 0 ? 'left' : 'right'} style={`--d:${i * 90}ms`}>
-          <div class="duo" data-reveal="photo" style={`--d:${i * 90 + 120}ms`}>
+          <div class="duo" data-reveal="photo" data-parallax data-cursor={d.city} style={`--d:${i * 90 + 120}ms`}>
             <Image src={photos[d.photo as keyof typeof photos]} alt={d.alt} widths={[400, 640]} sizes="(min-width: 1024px) 30vw, 90vw" />
           </div>
           <div class="travel__cap">
@@ -391,7 +416,7 @@ const placesBand = lang === 'tr'
       {t.beyond.certs.map((c, i) => (
         <li class="cert" data-reveal="right" style={`--d:${i * 70}ms`}>
           {c.img ? (
-            <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener">
+            <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener" data-cursor={t.cursor.open}>
               <Image src={certImgs[c.img as keyof typeof certImgs]} alt="" widths={[360]} sizes="360px" class="cert__img" />
               <span class="cert__name">{c.name}</span>
               <span class="cert__by">{c.by}</span>

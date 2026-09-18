@@ -60,6 +60,13 @@ const jsonLd = {
     <meta property="og:locale" content={lang === 'tr' ? 'tr_TR' : 'en_US'} />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script is:inline>
+      try {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !sessionStorage.getItem('ofe-intro')) {
+          document.documentElement.classList.add('js-intro');
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <a class="skip" href="#main">{t.skip}</a>

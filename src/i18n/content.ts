@@ -33,6 +33,17 @@ const en = {
   description:
     'Software engineering student who ships end to end: ASELSAN and drone-software internships, on-device ML, Kaggle competitions and live websites.',
   skip: 'Skip to content',
+  preloader: { welcome: 'WELCOME ABOARD', status: 'BOARDING' },
+  cursor: { view: 'View', open: 'Open', drag: 'Scroll' },
+  stats: {
+    heading: 'By the numbers',
+    items: [
+      { value: 2, suffix: '', label: 'Engineering internships' },
+      { value: 5, suffix: '', label: 'Projects shipped' },
+      { value: 13, suffix: '', label: 'Years of competitive taekwondo' },
+      { value: 66, suffix: '%', label: 'Less prediction error in Datathon 2026' },
+    ],
+  },
   nav: { departures: 'Departures', projects: 'Projects', beyond: 'Beyond code', contact: 'Contact' },
   langSwitch: { label: 'Türkçe', short: 'TR', href: '/tr/' },
   cv: 'CV',
@@ -258,7 +269,6 @@ const en = {
       { name: 'National Athlete Record · Taekwondo', by: 'Ministry of Youth and Sports', date: '2023', img: 'national-athlete' },
       { name: 'Code Genius', by: 'TalentCoders · participation', date: 'APR 2024', img: 'code-genius' },
       { name: 'Young Executive Academy', by: 'Six-month academy programme', date: '2023–2024', img: 'yea' },
-      { name: 'Siber Vatan', by: 'National cybersecurity training programme', date: '' },
     ],
     viewCert: 'View certificate',
   },
@@ -287,6 +297,17 @@ const tr: Content = {
   description:
     'Uçtan uca iş çıkaran yazılım mühendisliği öğrencisi: ASELSAN ve drone yazılımı stajları, cihaz üstü yapay zekâ, Kaggle yarışmaları ve yayındaki web siteleri.',
   skip: 'İçeriğe geç',
+  preloader: { welcome: 'HOŞ GELDİNİZ', status: 'BİNİŞ' },
+  cursor: { view: 'İncele', open: 'Aç', drag: 'Kaydır' },
+  stats: {
+    heading: 'Rakamlarla',
+    items: [
+      { value: 2, suffix: '', label: 'Mühendislik stajı' },
+      { value: 5, suffix: '', label: 'Tamamlanan proje' },
+      { value: 13, suffix: '', label: 'Yıl yarışma taekwondosu' },
+      { value: 66, suffix: '%', label: 'Datathon 2026’da azaltılan hata' },
+    ],
+  },
   nav: { departures: 'Kalkışlar', projects: 'Projeler', beyond: 'Kod dışında', contact: 'İletişim' },
   langSwitch: { label: 'English', short: 'EN', href: '/' },
   cv: 'CV',
@@ -512,7 +533,6 @@ const tr: Content = {
       { name: 'Millî Sporcu Belgesi · Taekwondo', by: 'Gençlik ve Spor Bakanlığı', date: '2023', img: 'national-athlete' },
       { name: 'Code Genius', by: 'TalentCoders · katılım', date: 'NİS 2024', img: 'code-genius' },
       { name: 'Young Executive Academy', by: 'Altı aylık akademi programı', date: '2023–2024', img: 'yea' },
-      { name: 'Siber Vatan', by: 'Ulusal siber güvenlik eğitim programı', date: '' },
     ],
     viewCert: 'Sertifikayı gör',
   },

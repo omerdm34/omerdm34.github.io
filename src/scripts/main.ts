@@ -71,14 +71,49 @@ function flap(el: HTMLElement, delay = 0): Promise<void> {
   });
 }
 
+/* ---------- Preloader: the board spells the name, then lifts ---------- */
+const preloader = document.querySelector<HTMLElement>('[data-preloader]');
+function runPreloader(): Promise<void> {
+  if (!preloader || !root.classList.contains('js-intro')) {
+    preloader?.remove();
+    return Promise.resolve();
+  }
+  const lines = Array.from(preloader.querySelectorAll<HTMLElement>('[data-flap]'));
+  const bar = preloader.querySelector<HTMLElement>('[data-preloader-bar]');
+  lenis?.stop();
+  let done = false;
+  return new Promise((resolve) => {
+    const finish = () => {
+      if (done) return;
+      done = true;
+      try { sessionStorage.setItem('ofe-intro', '1'); } catch {}
+      preloader.classList.add('is-leaving');
+      setTimeout(() => {
+        preloader.remove();
+        root.classList.remove('js-intro');
+        lenis?.start();
+      }, 900);
+      resolve();
+    };
+    preloader.addEventListener('click', finish, { once: true });
+    bar?.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 2100, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+    (async () => {
+      await Promise.all([lines[0] && flap(lines[0], 80), lines[1] && flap(lines[1], 260)]);
+      if (lines[2]) await flap(lines[2]);
+      setTimeout(finish, 350);
+    })();
+  });
+}
+
 if (!reduced) {
-  const boards = Array.from(document.querySelectorAll<HTMLElement>('[data-flap]'));
+  const boards = Array.from(document.querySelectorAll<HTMLElement>('[data-flap]')).filter((b) => !b.closest('[data-preloader]'));
   const hero = document.querySelector('.hero');
   const heroFlaps = boards.filter((b) => hero?.contains(b));
   const otherFlaps = boards.filter((b) => !hero?.contains(b));
 
   // Hero: name, then role, then the status blinks before its flaps turn.
   (async () => {
+    await runPreloader();
     const [first, last, role, dest, status] = heroFlaps;
     await Promise.all([first && flap(first, 150), last && flap(last, 420)]);
     if (role) await flap(role);
@@ -114,6 +149,8 @@ if (!reduced) {
   );
   otherFlaps.forEach((b) => io.observe(b));
 }
+
+if (reduced) preloader?.remove();
 
 /* ---------- Departure rows ---------- */
 document.querySelectorAll<HTMLButtonElement>('[data-row-toggle]').forEach((btn) => {
@@ -282,12 +319,155 @@ if (!reduced) {
   const onFrame = () => {
     updateBands();
     updatePlane();
+    updateGhosts();
+    updateParallax();
+    updateWords();
   };
-  onFrame();
+  queueMicrotask(onFrame); // run after the effect modules below are initialised
   if (lenis) lenis.on('scroll', onFrame);
   else window.addEventListener('scroll', onFrame, { passive: true });
   window.addEventListener('resize', onFrame);
   window.addEventListener('load', onFrame);
+}
+
+/* ---------- Ghost headings: huge outlined words drift sideways with scroll ---------- */
+const ghosts = Array.from(document.querySelectorAll<HTMLElement>('[data-ghost]')).map((el) => ({
+  el,
+  dir: Number(el.dataset.ghost) || 1,
+  host: el.parentElement as HTMLElement,
+}));
+function updateGhosts() {
+  const vh = window.innerHeight;
+  for (const { el, dir, host } of ghosts) {
+    const r = host.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > vh) continue;
+    const p = (vh - r.top) / (vh + r.height); // 0 → 1 while the section crosses the screen
+    el.style.transform = `translate3d(${(dir > 0 ? 12 - p * 34 : -22 + p * 34)}vw,0,0)`;
+  }
+}
+
+/* ---------- Photo parallax: the image drifts inside its frame ---------- */
+const parallax = Array.from(document.querySelectorAll<HTMLElement>('[data-parallax]'))
+  .map((frame) => ({ frame, img: frame.querySelector<HTMLImageElement>('img') }))
+  .filter((p): p is { frame: HTMLElement; img: HTMLImageElement } => !!p.img);
+function updateParallax() {
+  const vh = window.innerHeight;
+  for (const { frame, img } of parallax) {
+    const r = frame.getBoundingClientRect();
+    if (r.bottom < -100 || r.top > vh + 100 || r.height === 0) continue;
+    const p = (vh - r.top) / (vh + r.height) - 0.5; // -0.5 → 0.5
+    img.style.transform = `translate3d(0,${(-p * 12).toFixed(2)}%,0) scale(1.14)`;
+  }
+}
+
+/* ---------- Word-by-word reading light on the intro ---------- */
+const wordBlocks = (reduced ? [] : Array.from(document.querySelectorAll<HTMLElement>('[data-words]'))).map((block) => {
+  const words: HTMLElement[] = [];
+  block.querySelectorAll('p').forEach((p) => {
+    const text = p.textContent ?? '';
+    p.textContent = '';
+    text.split(/(\s+)/).forEach((part) => {
+      if (/^\s+$/.test(part) || part === '') {
+        p.append(part);
+        return;
+      }
+      const span = document.createElement('span');
+      span.className = 'word';
+      span.textContent = part;
+      p.append(span);
+      words.push(span);
+    });
+  });
+  block.classList.add('is-split');
+  return { block, words, lit: -1 };
+});
+function updateWords() {
+  const vh = window.innerHeight;
+  for (const w of wordBlocks) {
+    const r = w.block.getBoundingClientRect();
+    // fully lit by the time the block's bottom reaches 55% of the viewport
+    const p = Math.min(1, Math.max(0, (vh * 0.9 - r.top) / (r.height + vh * 0.35)));
+    const n = Math.round(p * w.words.length);
+    if (n === w.lit) continue;
+    w.words.forEach((el, i) => el.classList.toggle('is-lit', i < n));
+    w.lit = n;
+  }
+}
+
+/* ---------- Counters ---------- */
+const counters = Array.from(document.querySelectorAll<HTMLElement>('[data-count]'));
+if (!reduced && counters.length) {
+  counters.forEach((c) => (c.textContent = '0'));
+  const countIO = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        countIO.unobserve(e.target);
+        const el = e.target as HTMLElement;
+        const to = Number(el.dataset.count);
+        const start = performance.now();
+        const dur = 1400;
+        const step = (now: number) => {
+          const t = Math.min(1, (now - start) / dur);
+          el.textContent = String(Math.round(to * (1 - Math.pow(1 - t, 4))));
+          if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }),
+    { rootMargin: '0px 0px -15% 0px' },
+  );
+  counters.forEach((c) => countIO.observe(c));
+}
+
+/* ---------- Cursor follower and magnetic controls (fine pointers only) ---------- */
+const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+if (finePointer && !reduced) {
+  const cursor = document.createElement('div');
+  cursor.className = 'cursor';
+  cursor.setAttribute('aria-hidden', 'true');
+  const label = document.createElement('span');
+  label.className = 'cursor__label';
+  cursor.append(label);
+  document.body.append(cursor);
+
+  let tx = -100, ty = -100, cx = -100, cy = -100;
+  window.addEventListener('pointermove', (e) => {
+    tx = e.clientX;
+    ty = e.clientY;
+    cursor.classList.add('is-visible');
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => cursor.classList.remove('is-visible'));
+  const loop = () => {
+    cx += (tx - cx) * 0.2;
+    cy += (ty - cy) * 0.2;
+    cursor.style.transform = `translate3d(${cx}px,${cy}px,0)`;
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+
+  document.addEventListener('pointerover', (e) => {
+    const target = e.target as HTMLElement;
+    const labelled = target.closest<HTMLElement>('[data-cursor]');
+    const interactive = target.closest('a, button, [role="button"], input, textarea');
+    cursor.classList.toggle('is-label', !!labelled);
+    cursor.classList.toggle('is-link', !labelled && !!interactive);
+    label.textContent = labelled?.dataset.cursor ?? '';
+  });
+
+  document.querySelectorAll<HTMLElement>('.sign, .btn, .socials a, .lang, .form__send, .case__next').forEach((el) => {
+    el.classList.add('magnet');
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      const mx = (e.clientX - (r.left + r.width / 2)) * 0.22;
+      const my = (e.clientY - (r.top + r.height / 2)) * 0.3;
+      el.style.setProperty('--mx', `${mx.toFixed(1)}px`);
+      el.style.setProperty('--my', `${my.toFixed(1)}px`);
+    });
+    el.addEventListener('pointerleave', () => {
+      el.style.setProperty('--mx', '0px');
+      el.style.setProperty('--my', '0px');
+    });
+  });
 }
 
 /* ---------- Top bar state ---------- */

@@ -264,7 +264,7 @@ const placesBand = lang === 'tr'
         <ol class="rail__track" data-rail-track>
           {t.projects.items.map((p) => (
             <li class="proj" id={`p-${p.id}`}>
-              <div class="proj__proof" data-cursor={t.cursor.view}>
+              <div class="proj__proof">
                 {p.id === 'signbridge' && (
                   <div class="phone">
                     <Image src={signbridgeLive} alt={lang === 'tr' ? 'SignBridgeAI kamerada bir el işaretini T harfi olarak yüzde 89,8 güvenle tanıyor' : 'SignBridgeAI recognizing a hand sign as the letter T with 89.8% confidence'} widths={[320, 520]} sizes="(min-width: 1024px) 18vw, 50vw" />
@@ -402,7 +402,7 @@ const placesBand = lang === 'tr'
     <ul class="travel">
       {t.beyond.travel.map((d, i) => (
         <li class="travel__item" data-reveal={i % 2 ? 'up' : i === 0 ? 'left' : 'right'} style={`--d:${i * 90}ms`}>
-          <div class="duo" data-reveal="photo" data-parallax data-cursor={d.city} style={`--d:${i * 90 + 120}ms`}>
+          <div class="duo" data-reveal="photo" data-parallax style={`--d:${i * 90 + 120}ms`}>
             <Image src={photos[d.photo as keyof typeof photos]} alt={d.alt} widths={[400, 640]} sizes="(min-width: 1024px) 30vw, 90vw" />
           </div>
           <div class="travel__cap">
@@ -418,7 +418,7 @@ const placesBand = lang === 'tr'
       {t.beyond.certs.map((c, i) => (
         <li class="cert" data-reveal="right" style={`--d:${i * 70}ms`}>
           {c.img ? (
-            <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener" data-cursor={t.cursor.open}>
+            <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener">
               <Image src={certImgs[c.img as keyof typeof certImgs]} alt="" widths={[360]} sizes="360px" class="cert__img" />
               <span class="cert__name">{c.name}</span>
               <span class="cert__by">{c.by}</span>

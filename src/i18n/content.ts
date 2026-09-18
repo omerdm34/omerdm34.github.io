@@ -34,7 +34,6 @@ const en = {
     'Software engineering student who ships end to end: ASELSAN and drone-software internships, on-device ML, Kaggle competitions and live websites.',
   skip: 'Skip to content',
   preloader: { welcome: 'WELCOME ABOARD', status: 'BOARDING' },
-  cursor: { view: 'View', open: 'Open', drag: 'Scroll' },
   stats: {
     heading: 'By the numbers',
     items: [
@@ -299,7 +298,6 @@ const tr: Content = {
     'Uçtan uca iş çıkaran yazılım mühendisliği öğrencisi: ASELSAN ve drone yazılımı stajları, cihaz üstü yapay zekâ, Kaggle yarışmaları ve yayındaki web siteleri.',
   skip: 'İçeriğe geç',
   preloader: { welcome: 'HOŞ GELDİNİZ', status: 'BİNİŞ' },
-  cursor: { view: 'İncele', open: 'Aç', drag: 'Kaydır' },
   stats: {
     heading: 'Rakamlarla',
     items: [

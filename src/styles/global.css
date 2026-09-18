@@ -714,30 +714,11 @@ main { isolation: isolate; }
 /* ============ Parallax frames ============ */
 .js [data-parallax] img { transition: none !important; will-change: transform; }
 
-/* ============ Cursor follower + magnetic controls ============ */
-.cursor {
-  position: fixed; left: 0; top: 0; z-index: 400; pointer-events: none;
-  width: 0; height: 0; opacity: 0; transition: opacity 200ms var(--ease-out);
-}
-.cursor.is-visible { opacity: 1; }
-.cursor::before {
-  content: ''; position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%;
-  border: 1.5px solid var(--sign);
-  transition: transform 260ms var(--ease-out), background-color 200ms var(--ease-out), border-color 200ms;
-}
-.cursor.is-link::before { transform: scale(2.6); background: rgba(255, 198, 41, 0.12); }
-.cursor.is-label::before { transform: scale(6.2); background: var(--sign); border-color: var(--sign); }
-.cursor__label {
-  position: absolute; left: 0; top: 0; transform: translate(-50%, -50%) scale(0.6); opacity: 0;
-  font-family: var(--f-display); font-weight: 800; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.03em;
-  color: var(--sign-ink); white-space: nowrap; transition: opacity 180ms var(--ease-out), transform 260ms var(--ease-out);
-}
-.cursor.is-label .cursor__label { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-.contact .cursor::before { border-color: var(--sign-ink); }
+/* ============ Magnetic controls ============ */
 .magnet { transform: translate3d(var(--mx, 0px), var(--my, 0px), 0); transition-property: background-color, color, border-color, transform; transition-duration: 160ms, 160ms, 160ms, 300ms; }
 .magnet:active { transform: translate3d(var(--mx, 0px), var(--my, 0px), 0) scale(0.97); }
 .socials a.magnet { width: fit-content; min-width: 100%; }
 
 @media (prefers-reduced-motion: reduce) {
-  .preloader, .cursor, .ghost { display: none !important; }
+  .preloader, .ghost { display: none !important; }
 }

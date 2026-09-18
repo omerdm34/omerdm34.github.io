@@ -419,41 +419,9 @@ if (!reduced && counters.length) {
   counters.forEach((c) => countIO.observe(c));
 }
 
-/* ---------- Cursor follower and magnetic controls (fine pointers only) ---------- */
+/* ---------- Magnetic controls (fine pointers only) ---------- */
 const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 if (finePointer && !reduced) {
-  const cursor = document.createElement('div');
-  cursor.className = 'cursor';
-  cursor.setAttribute('aria-hidden', 'true');
-  const label = document.createElement('span');
-  label.className = 'cursor__label';
-  cursor.append(label);
-  document.body.append(cursor);
-
-  let tx = -100, ty = -100, cx = -100, cy = -100;
-  window.addEventListener('pointermove', (e) => {
-    tx = e.clientX;
-    ty = e.clientY;
-    cursor.classList.add('is-visible');
-  }, { passive: true });
-  document.addEventListener('pointerleave', () => cursor.classList.remove('is-visible'));
-  const loop = () => {
-    cx += (tx - cx) * 0.2;
-    cy += (ty - cy) * 0.2;
-    cursor.style.transform = `translate3d(${cx}px,${cy}px,0)`;
-    requestAnimationFrame(loop);
-  };
-  requestAnimationFrame(loop);
-
-  document.addEventListener('pointerover', (e) => {
-    const target = e.target as HTMLElement;
-    const labelled = target.closest<HTMLElement>('[data-cursor]');
-    const interactive = target.closest('a, button, [role="button"], input, textarea');
-    cursor.classList.toggle('is-label', !!labelled);
-    cursor.classList.toggle('is-link', !labelled && !!interactive);
-    label.textContent = labelled?.dataset.cursor ?? '';
-  });
-
   document.querySelectorAll<HTMLElement>('.sign, .btn, .socials a, .lang, .form__send, .case__next').forEach((el) => {
     el.classList.add('magnet');
     el.addEventListener('pointermove', (e) => {

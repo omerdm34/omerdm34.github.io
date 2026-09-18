@@ -12,7 +12,7 @@ type Row = {
   photo?: 'aselsan' | 'drone-workshop' | 'quadcopter' | 'umfst' | 'firat';
   photoAlt?: string;
   photoCredit?: string;
-  logo?: 'aselsan' | 'umfst' | 'firat' | 'mtu';
+  logo?: 'aselsan' | 'umfst' | 'firat' | 'mtu' | 'mostas';
 };
 
 type Project = {
@@ -112,6 +112,7 @@ const en = {
         code: 'MST 25',
         destination: 'Software Engineering Intern · aviation & space technologies',
         org: 'MOSTAŞ TEKNOLOJİ',
+        logo: 'mostas',
         gate: 'İSTANBUL',
         status: 'LANDED',
         photo: 'drone-workshop',
@@ -376,6 +377,7 @@ const tr: Content = {
         code: 'MST 25',
         destination: 'Yazılım Mühendisliği Stajyeri · havacılık ve uzay teknolojileri',
         org: 'MOSTAŞ TEKNOLOJİ',
+        logo: 'mostas',
         gate: 'İSTANBUL',
         status: 'İNDİ',
         photo: 'drone-workshop',

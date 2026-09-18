@@ -329,6 +329,7 @@ section { scroll-margin-top: 4.5rem; }
 .row__logo--aselsan { height: 1.5rem; }
 .row__logo--umfst { height: 3.2rem; }
 .row__logo--firat { height: 2.8rem; }
+.row__logo--mostas { height: 2.6rem; }
 .row__logo--mtu { height: auto; width: min(22rem, 100%); }
 .ticks { display: grid; gap: 0.9rem; max-width: 70ch; }
 .ticks li { position: relative; padding-left: 1.6rem; color: var(--ink-2); }

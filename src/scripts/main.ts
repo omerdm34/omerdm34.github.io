@@ -39,12 +39,11 @@ if (dateEl) {
 /* ---------- Split-flap engine ---------- */
 const CHARS = 'ABCDEFGHIJKLMNOPRSTUVYZÇĞİÖŞÜ0123456789·-/';
 
+const TURN: Keyframe[] = [{ transform: 'scaleY(0.55)', opacity: 0.7 }, { transform: 'scaleY(1)', opacity: 1 }];
 function turn(cell: HTMLElement, ch: string) {
   cell.textContent = ch;
-  cell.classList.remove('is-turning');
-  // restart the CSS turn animation
-  void cell.offsetWidth;
-  cell.classList.add('is-turning');
+  // WAAPI restarts the turn without forcing a layout (the old class toggle read offsetWidth per cell)
+  cell.animate(TURN, { duration: 90, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
 }
 
 function flap(el: HTMLElement, delay = 0): Promise<void> {
@@ -152,78 +151,6 @@ if (!reduced) {
 
 if (reduced) preloader?.remove();
 
-/* ---------- Departures: gate cards stack, each new one slides up over the last ---------- */
-const stackCards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]')).map((card) => ({
-  card,
-  inner: card.firstElementChild as HTMLElement,
-  shade: card.querySelector<HTMLElement>('[data-card-shade]'),
-  stick: 0,
-}));
-function measureStack() {
-  const vh = window.innerHeight;
-  stackCards.forEach((c, i) => {
-    // Pin under the topbar with a small step so earlier cards peek out above;
-    // a card taller than the screen pins by its bottom edge instead.
-    const base = 76 + i * 12;
-    c.stick = Math.min(base, vh - c.card.offsetHeight - 16);
-    c.card.style.setProperty('--stick', `${c.stick}px`);
-  });
-}
-function updateStack() {
-  const vh = window.innerHeight;
-  for (let i = 0; i < stackCards.length - 1; i++) {
-    const cur = stackCards[i];
-    const next = stackCards[i + 1];
-    const top = next.card.getBoundingClientRect().top;
-    const p = clamp01((vh - top) / Math.max(1, vh - next.stick)); // 0 → 1 while the next card rises
-    cur.inner.style.transform = `scale(${(1 - p * 0.06).toFixed(4)})`;
-    if (cur.shade) cur.shade.style.opacity = (p * 0.6).toFixed(3);
-  }
-}
-if (!reduced && stackCards.length) {
-  measureStack();
-  window.addEventListener('resize', measureStack);
-  window.addEventListener('load', measureStack);
-  new ResizeObserver(measureStack).observe(document.querySelector('[data-stack]')!);
-}
-
-/* ---------- Projects rail: vertical scroll drives a horizontal track ---------- */
-const rail = document.querySelector<HTMLElement>('[data-rail]');
-const track = document.querySelector<HTMLElement>('[data-rail-track]');
-const wide = window.matchMedia('(min-width: 1100px)');
-if (rail && track) {
-  let distance = 0;
-  const measure = () => {
-    if (!wide.matches || reduced) {
-      rail.style.height = '';
-      track.style.transform = '';
-      distance = 0;
-      return;
-    }
-    distance = Math.max(0, track.scrollWidth - window.innerWidth);
-    rail.style.height = `${window.innerHeight + distance}px`;
-    lenis?.resize();
-  };
-  const update = () => {
-    if (!distance) return;
-    const top = rail.getBoundingClientRect().top;
-    const p = Math.min(1, Math.max(0, -top / distance));
-    track.style.transform = `translate3d(${-p * distance}px,0,0)`;
-  };
-  measure();
-  window.addEventListener('resize', () => {
-    measure();
-    update();
-  });
-  wide.addEventListener('change', measure);
-  window.addEventListener('load', () => {
-    measure();
-    update();
-  });
-  if (lenis) lenis.on('scroll', update);
-  else window.addEventListener('scroll', update, { passive: true });
-}
-
 /* ---------- Scroll reveals ---------- */
 if (!reduced) {
   const revealIO = new IntersectionObserver(
@@ -240,32 +167,143 @@ if (!reduced) {
   document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-in'));
 }
 
+/* ============ Scroll-linked effects ============
+   Every effect is split into read (layout) and write (style) halves. One frame runs
+   all reads first, then all writes, so the browser lays the page out once per frame.
+   Positions that only change on resize are cached in measure(). */
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const smooth = (t: number) => t * t * (3 - 2 * t);
+let vw = window.innerWidth;
+let vh = window.innerHeight;
+type Write = (() => void) | void;
+type Effect = { measure?: () => void; read: () => Write };
+const effects: Effect[] = [];
+
+/* ---------- Departures: gate cards stack, each new one slides up over the last ---------- */
+const stackCards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]')).map((card) => ({
+  card,
+  inner: card.firstElementChild as HTMLElement,
+  shade: card.querySelector<HTMLElement>('[data-card-shade]'),
+  stick: 0,
+  p: -1,
+}));
+let stackLastShort = false;
+let stackFade = -1;
+function measureStack() {
+  const heights = stackCards.map((c) => c.card.offsetHeight);
+  stackCards.forEach((c, i) => {
+    // Pin under the topbar with a small step so earlier cards peek out above;
+    // a card taller than the screen pins by its bottom edge instead.
+    c.stick = Math.min(76 + i * 12, vh - heights[i] - 16);
+    c.card.style.setProperty('--stick', `${c.stick}px`);
+  });
+  // A short last card (phones) can't cover the cards behind it, so those fade out instead.
+  const last = stackCards[stackCards.length - 1];
+  stackLastShort = !!last && heights[heights.length - 1] < vh - 16 - last.stick - 4;
+  if (!stackLastShort && stackFade !== -1) {
+    stackCards.forEach((c) => (c.inner.style.opacity = ''));
+    stackFade = -1;
+  }
+}
+if (!reduced && stackCards.length) {
+  effects.push({
+    measure: measureStack,
+    read: () => {
+      const tops = stackCards.map((c) => c.card.getBoundingClientRect().top);
+      return () => {
+        for (let i = 0; i < stackCards.length - 1; i++) {
+          const cur = stackCards[i];
+          const next = stackCards[i + 1];
+          // 0 → 1 while the next card rises; rounded so idle frames write nothing
+          const p = Math.round(clamp01((vh - tops[i + 1]) / Math.max(1, vh - next.stick)) * 500) / 500;
+          if (p === cur.p) continue;
+          cur.p = p;
+          cur.inner.style.transform = p ? `scale(${(1 - p * 0.06).toFixed(4)})` : '';
+          if (cur.shade) cur.shade.style.opacity = (p * 0.6).toFixed(3);
+        }
+        if (!stackLastShort || stackCards.length < 2) return;
+        const fade = Math.round((1 - smooth(clamp01((stackCards[stackCards.length - 2].p - 0.3) / 0.7))) * 200) / 200;
+        if (fade === stackFade) return;
+        stackFade = fade;
+        for (let i = 0; i < stackCards.length - 1; i++) stackCards[i].inner.style.opacity = fade < 1 ? String(fade) : '';
+      };
+    },
+  });
+}
+
+/* ---------- Projects rail: vertical scroll drives a horizontal track ---------- */
+const rail = document.querySelector<HTMLElement>('[data-rail]');
+const track = document.querySelector<HTMLElement>('[data-rail-track]');
+const railSticky = rail?.querySelector<HTMLElement>('.rail__sticky') ?? null;
+const wide = window.matchMedia('(min-width: 1100px)');
+let railDistance = 0;
+if (rail && track && railSticky) {
+  effects.push({
+    measure: () => {
+      if (!wide.matches || reduced) {
+        rail.style.height = '';
+        track.style.transform = '';
+        railDistance = 0;
+        return;
+      }
+      railDistance = Math.max(0, track.scrollWidth - vw);
+      rail.style.height = `${vh + railDistance}px`;
+    },
+    read: () => {
+      if (!railDistance) return;
+      const top = rail.getBoundingClientRect().top;
+      return () => {
+        track.style.transform = `translate3d(${(-clamp01(-top / railDistance) * railDistance).toFixed(1)}px,0,0)`;
+      };
+    },
+  });
+  // Keyboard: the browser reveals a focused link by scrolling the clipped sticky box
+  // sideways, which desyncs the rail. Undo that and scroll the page to the card instead.
+  railSticky.addEventListener('scroll', () => {
+    if (railSticky.scrollLeft) railSticky.scrollLeft = 0;
+  });
+  rail.addEventListener('focusin', (e) => {
+    const item = (e.target as HTMLElement).closest<HTMLElement>('.proj');
+    requestAnimationFrame(() => {
+      railSticky.scrollLeft = 0;
+      if (!railDistance || !item) return;
+      const shift = clamp01((item.offsetLeft - (vw - item.offsetWidth) / 2) / railDistance) * railDistance;
+      const y = rail.getBoundingClientRect().top + window.scrollY + shift;
+      window.scrollTo(0, y); // Lenis follows native scroll when it isn't animating
+    });
+  });
+}
+
 /* ---------- Signage bands: vertical scroll pushes them sideways ---------- */
 const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-band]')).map((band) => ({
   band,
   track: band.querySelector<HTMLElement>('[data-band-track]')!,
   dir: Number(band.dataset.band) || -1,
+  third: 0,
 }));
-function updateBands() {
-  const vh = window.innerHeight;
-  for (const { band, track, dir } of bands) {
-    const r = band.getBoundingClientRect();
-    if (r.bottom < -200 || r.top > vh + 200) continue;
-    const third = track.scrollWidth / 3;
-    // progress through the viewport, mapped to up to one third of the track
-    const p = (vh - r.top) / (vh + r.height);
-    const x = dir < 0 ? -p * third * 0.9 : -third + p * third * 0.9;
-    track.style.transform = `translate3d(${x}px,0,0)`;
-  }
+if (!reduced) {
+  effects.push({
+    measure: () => bands.forEach((b) => (b.third = b.track.scrollWidth / 3)),
+    read: () => {
+      const rects = bands.map((b) => b.band.getBoundingClientRect());
+      return () =>
+        bands.forEach(({ track, dir, third }, i) => {
+          const r = rects[i];
+          if (r.bottom < -200 || r.top > vh + 200) return;
+          // progress through the viewport, mapped to up to one third of the track
+          const p = (vh - r.top) / (vh + r.height);
+          const x = dir < 0 ? -p * third * 0.9 : -third + p * third * 0.9;
+          track.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+        });
+    },
+  });
 }
 
 /* ---------- The plane: takes off, cruises across the page, lands before contact ---------- */
 const plane = document.querySelector<HTMLElement>('[data-plane]');
 const planeFlip = document.querySelector<HTMLElement>('[data-plane-flip]');
 const runway = document.querySelector<HTMLElement>('[data-runway]');
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const smooth = (t: number) => t * t * (3 - 2 * t);
 
 const TAKEOFF = 0.1;
 const LANDING = 0.86;
@@ -296,95 +334,83 @@ function planeAt(p: number): { x: number; y: number } {
 }
 
 let planeDir = 1;
-function updatePlane() {
-  if (!plane || !planeFlip || !runway) return;
-  // touch down just before the closing band and the contact sign scroll into view
-  const arrival = document.querySelector<HTMLElement>('[data-band="1"]') ?? document.getElementById('contact');
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const endScroll = Math.max(1, (arrival ? arrival.offsetTop : document.body.scrollHeight) - vh * 1.02);
-  const p = clamp01(window.scrollY / endScroll);
-
-  const a = planeAt(p);
-  const b = planeAt(Math.min(1, p + 0.0025));
-  const dx = (b.x - a.x) * vw;
-  const dy = (b.y - a.y) * vh;
-  if (Math.abs(dx) > 0.2) planeDir = dx > 0 ? 1 : -1;
-  const onGround = a.y >= 0.929;
-  const angle = onGround ? 0 : Math.max(-16, Math.min(16, (Math.atan2(dy, Math.abs(dx) || 1) * 180) / Math.PI)) * planeDir;
-
-  const w = plane.offsetWidth;
-  const h = w * 0.36;
-  const px = a.x * vw - w / 2;
-  const py = a.y * vh - h * 0.84; // wheels sit on the runway line
-  plane.style.transform = `translate3d(${px}px,${py}px,0) rotate(${angle}deg)`;
-  planeFlip.style.transform = `scaleX(${planeDir})`;
-  plane.classList.toggle('gear-down', p < TAKEOFF * 0.7 || p > LANDING + (1 - LANDING) * 0.35);
-  plane.classList.add('is-ready');
-  runway.style.opacity = String(Math.max(1 - p / (TAKEOFF * 0.8), smooth(clamp01((p - LANDING - 0.03) / 0.08))));
-}
-
-if (!reduced) {
-  const onFrame = () => {
-    updateBands();
-    updatePlane();
-    updateGhosts();
-    updateParallax();
-    updateWords();
-    updateStack();
-    updateDeck();
-  };
-  queueMicrotask(onFrame); // run after the effect modules below are initialised
-  if (lenis) lenis.on('scroll', onFrame);
-  else window.addEventListener('scroll', onFrame, { passive: true });
-  window.addEventListener('resize', onFrame);
-  window.addEventListener('load', onFrame);
+let planeW = 0;
+let planeEnd = 1;
+if (!reduced && plane && planeFlip && runway) {
+  effects.push({
+    measure: () => {
+      // touch down just before the closing band and the contact sign scroll into view
+      const arrival = document.querySelector<HTMLElement>('[data-band="1"]') ?? document.getElementById('contact');
+      const arrivalTop = arrival ? arrival.getBoundingClientRect().top + window.scrollY : document.body.scrollHeight;
+      planeEnd = Math.max(1, arrivalTop - vh * 1.02);
+      planeW = plane.offsetWidth;
+    },
+    read: () => {
+      const p = clamp01(window.scrollY / planeEnd);
+      return () => {
+        const a = planeAt(p);
+        const b = planeAt(Math.min(1, p + 0.0025));
+        const dx = (b.x - a.x) * vw;
+        const dy = (b.y - a.y) * vh;
+        if (Math.abs(dx) > 0.2) planeDir = dx > 0 ? 1 : -1;
+        const onGround = a.y >= 0.929;
+        const angle = onGround ? 0 : Math.max(-16, Math.min(16, (Math.atan2(dy, Math.abs(dx) || 1) * 180) / Math.PI)) * planeDir;
+        const px = a.x * vw - planeW / 2;
+        const py = a.y * vh - planeW * 0.36 * 0.84; // wheels sit on the runway line
+        plane.style.transform = `translate3d(${px.toFixed(1)}px,${py.toFixed(1)}px,0) rotate(${angle.toFixed(2)}deg)`;
+        planeFlip.style.transform = `scaleX(${planeDir})`;
+        plane.classList.toggle('gear-down', p < TAKEOFF * 0.7 || p > LANDING + (1 - LANDING) * 0.35);
+        plane.classList.add('is-ready');
+        runway.style.opacity = String(Math.max(1 - p / (TAKEOFF * 0.8), smooth(clamp01((p - LANDING - 0.03) / 0.08))));
+      };
+    },
+  });
 }
 
 /* ---------- Travel deck: a pile of postcards dealt into a row as you scroll ---------- */
 const deck = document.querySelector<HTMLElement>('[data-deck]');
-const deckCards = deck ? Array.from(deck.querySelectorAll<HTMLElement>('[data-deck-card]')) : [];
+const deckCards = deck
+  ? Array.from(deck.querySelectorAll<HTMLElement>('[data-deck-card]')).map((el) => ({ el, cap: el.querySelector<HTMLElement>('.travel__cap') }))
+  : [];
 const deckWide = window.matchMedia('(min-width: 900px)');
 const DECK_TILT = [-7, 3, 9]; // degrees, as they lie in the pile
 const DECK_ORDER = [1, 2, 0]; // the top card (last in the DOM) is dealt first
 let deckOffsets: { x: number; y: number }[] = [];
-function measureDeck() {
-  deckCards.forEach((c) => {
-    c.style.transform = '';
-    const cap = c.querySelector<HTMLElement>('.travel__cap');
-    if (cap) cap.style.opacity = '';
-  });
-  deckOffsets = [];
-  if (!deck || !deckWide.matches) return;
-  const list = deckCards[0]?.parentElement?.getBoundingClientRect();
-  if (!list) return;
-  const cx = list.left + list.width / 2;
-  const cy = list.top + list.height / 2;
-  deckOffsets = deckCards.map((c) => {
-    const r = c.getBoundingClientRect();
-    return { x: cx - (r.left + r.width / 2), y: cy - (r.top + r.height / 2) };
-  });
-  updateDeck();
-}
-function updateDeck() {
-  if (!deck || !deckOffsets.length) return;
-  const r = deck.getBoundingClientRect();
-  const range = Math.max(1, r.height - window.innerHeight);
-  const p = clamp01(-r.top / range / 0.8); // finish dealing with a short hold at the end
-  deckCards.forEach((c, i) => {
-    const q = clamp01((p - DECK_ORDER[i] * 0.2) / 0.6);
-    const k = Math.pow(1 - q, 3); // ease-out: 1 in the pile → 0 in place
-    const o = deckOffsets[i];
-    const cap = c.querySelector<HTMLElement>('.travel__cap');
-    if (cap) cap.style.opacity = clamp01((q - 0.6) / 0.4).toFixed(3); // caption appears as the card lands
-    c.style.transform = `translate3d(${(o.x * k).toFixed(1)}px,${(o.y * k + 24 * k).toFixed(1)}px,0) rotate(${(DECK_TILT[i] * k).toFixed(2)}deg) scale(${(1 - 0.1 * k).toFixed(3)})`;
-  });
-}
 if (!reduced && deck) {
-  measureDeck();
-  window.addEventListener('resize', measureDeck);
-  window.addEventListener('load', measureDeck);
-  deckWide.addEventListener('change', measureDeck);
+  effects.push({
+    measure: () => {
+      deckCards.forEach(({ el, cap }) => {
+        el.style.transform = '';
+        if (cap) cap.style.opacity = '';
+      });
+      deckOffsets = [];
+      if (!deckWide.matches) return;
+      const list = deckCards[0]?.el.parentElement?.getBoundingClientRect();
+      if (!list) return;
+      const cx = list.left + list.width / 2;
+      const cy = list.top + list.height / 2;
+      deckOffsets = deckCards.map(({ el }) => {
+        const r = el.getBoundingClientRect();
+        return { x: cx - (r.left + r.width / 2), y: cy - (r.top + r.height / 2) };
+      });
+    },
+    read: () => {
+      if (!deckOffsets.length) return;
+      const r = deck.getBoundingClientRect();
+      if (r.bottom < -vh || r.top > vh * 2) return;
+      const p = clamp01(-r.top / Math.max(1, r.height - vh) / 0.8); // finish dealing with a short hold at the end
+      return () =>
+        deckCards.forEach(({ el, cap }, i) => {
+          const q = clamp01((p - DECK_ORDER[i] * 0.2) / 0.6);
+          const k = Math.pow(1 - q, 3); // ease-out: 1 in the pile → 0 in place
+          const o = deckOffsets[i];
+          if (cap) cap.style.opacity = clamp01((q - 0.6) / 0.4).toFixed(3); // caption appears as the card lands
+          el.style.transform = k
+            ? `translate3d(${(o.x * k).toFixed(1)}px,${(o.y * k + 24 * k).toFixed(1)}px,0) rotate(${(DECK_TILT[i] * k).toFixed(2)}deg) scale(${(1 - 0.1 * k).toFixed(3)})`
+            : '';
+        });
+    },
+  });
 }
 
 /* ---------- Ghost headings: huge outlined words drift sideways with scroll ---------- */
@@ -393,28 +419,38 @@ const ghosts = Array.from(document.querySelectorAll<HTMLElement>('[data-ghost]')
   dir: Number(el.dataset.ghost) || 1,
   host: el.parentElement as HTMLElement,
 }));
-function updateGhosts() {
-  const vh = window.innerHeight;
-  for (const { el, dir, host } of ghosts) {
-    const r = host.getBoundingClientRect();
-    if (r.bottom < 0 || r.top > vh) continue;
-    const p = (vh - r.top) / (vh + r.height); // 0 → 1 while the section crosses the screen
-    el.style.transform = `translate3d(${(dir > 0 ? 12 - p * 34 : -22 + p * 34)}vw,0,0)`;
-  }
+if (!reduced) {
+  effects.push({
+    read: () => {
+      const rects = ghosts.map((g) => g.host.getBoundingClientRect());
+      return () =>
+        ghosts.forEach(({ el, dir }, i) => {
+          const r = rects[i];
+          if (r.bottom < 0 || r.top > vh) return;
+          const p = (vh - r.top) / (vh + r.height); // 0 → 1 while the section crosses the screen
+          el.style.transform = `translate3d(${(dir > 0 ? 12 - p * 34 : -22 + p * 34).toFixed(2)}vw,0,0)`;
+        });
+    },
+  });
 }
 
 /* ---------- Photo parallax: the image drifts inside its frame ---------- */
 const parallax = Array.from(document.querySelectorAll<HTMLElement>('[data-parallax]'))
   .map((frame) => ({ frame, img: frame.querySelector<HTMLImageElement>('img') }))
   .filter((p): p is { frame: HTMLElement; img: HTMLImageElement } => !!p.img);
-function updateParallax() {
-  const vh = window.innerHeight;
-  for (const { frame, img } of parallax) {
-    const r = frame.getBoundingClientRect();
-    if (r.bottom < -100 || r.top > vh + 100 || r.height === 0) continue;
-    const p = (vh - r.top) / (vh + r.height) - 0.5; // -0.5 → 0.5
-    img.style.transform = `translate3d(0,${(-p * 12).toFixed(2)}%,0) scale(1.14)`;
-  }
+if (!reduced) {
+  effects.push({
+    read: () => {
+      const rects = parallax.map((p) => p.frame.getBoundingClientRect());
+      return () =>
+        parallax.forEach(({ img }, i) => {
+          const r = rects[i];
+          if (r.bottom < -100 || r.top > vh + 100 || r.height === 0) return;
+          const p = (vh - r.top) / (vh + r.height) - 0.5; // -0.5 → 0.5
+          img.style.transform = `translate3d(0,${(-p * 12).toFixed(2)}%,0) scale(1.14)`;
+        });
+    },
+  });
 }
 
 /* ---------- Word-by-word reading light on the intro ---------- */
@@ -436,20 +472,103 @@ const wordBlocks = (reduced ? [] : Array.from(document.querySelectorAll<HTMLElem
     });
   });
   block.classList.add('is-split');
-  return { block, words, lit: -1 };
+  return { block, words, lit: 0 };
 });
-function updateWords() {
-  const vh = window.innerHeight;
-  for (const w of wordBlocks) {
-    const r = w.block.getBoundingClientRect();
-    // fully lit by the time the block's bottom reaches 55% of the viewport
-    const p = Math.min(1, Math.max(0, (vh * 0.9 - r.top) / (r.height + vh * 0.35)));
-    const n = Math.round(p * w.words.length);
-    if (n === w.lit) continue;
-    w.words.forEach((el, i) => el.classList.toggle('is-lit', i < n));
-    w.lit = n;
-  }
+if (wordBlocks.length) {
+  effects.push({
+    read: () => {
+      const rects = wordBlocks.map((w) => w.block.getBoundingClientRect());
+      return () =>
+        wordBlocks.forEach((w, i) => {
+          const r = rects[i];
+          // fully lit by the time the block's bottom reaches 55% of the viewport
+          const n = Math.round(clamp01((vh * 0.9 - r.top) / (r.height + vh * 0.35)) * w.words.length);
+          if (n === w.lit) return;
+          // only touch the words whose state changed
+          for (let k = Math.min(n, w.lit); k < Math.max(n, w.lit); k++) w.words[k].classList.toggle('is-lit', k < n);
+          w.lit = n;
+        });
+    },
+  });
 }
+
+/* ---------- Top bar state ---------- */
+const topbar = document.querySelector<HTMLElement>('[data-topbar]');
+if (topbar) {
+  let scrolled: boolean | null = null;
+  effects.push({
+    read: () => {
+      const s = window.scrollY > 24;
+      if (s === scrolled) return;
+      scrolled = s;
+      return () => topbar.classList.toggle('is-scrolled', s);
+    },
+  });
+}
+
+/* ---------- Frame scheduler ---------- */
+function frame() {
+  const writes = effects.map((e) => e.read());
+  for (const w of writes) if (w) w();
+}
+function measureAll() {
+  vw = window.innerWidth;
+  vh = window.innerHeight;
+  for (const e of effects) e.measure?.();
+  lenis?.resize();
+  frame();
+}
+let queued = false;
+const schedule = () => {
+  if (queued) return;
+  queued = true;
+  requestAnimationFrame(() => {
+    queued = false;
+    frame();
+  });
+};
+// Touch browsers resize the viewport whenever the address bar slides in or out.
+// Re-measuring the whole page for that made mobile scrolling stutter, so only a
+// width change (rotation, window resize) or a large height change re-measures.
+let lastW = vw;
+let lastH = vh;
+const coarse = window.matchMedia('(pointer: coarse)').matches;
+let resizeQueued = false;
+window.addEventListener('resize', () => {
+  if (resizeQueued) return;
+  resizeQueued = true;
+  requestAnimationFrame(() => {
+    resizeQueued = false;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (w !== lastW || !coarse || Math.abs(h - lastH) > 160) {
+      lastW = w;
+      lastH = h;
+      measureAll();
+    } else {
+      vh = h;
+      frame();
+    }
+  });
+});
+wide.addEventListener('change', measureAll);
+deckWide.addEventListener('change', measureAll);
+window.addEventListener('load', measureAll);
+if (!reduced && stackCards.length) {
+  let roQueued = false;
+  new ResizeObserver(() => {
+    if (roQueued) return;
+    roQueued = true;
+    requestAnimationFrame(() => {
+      roQueued = false;
+      measureStack();
+      frame();
+    });
+  }).observe(document.querySelector('[data-stack]')!);
+}
+if (lenis) lenis.on('scroll', frame); // Lenis emits inside its own animation frame
+else window.addEventListener('scroll', schedule, { passive: true });
+measureAll();
 
 /* ---------- Counters ---------- */
 const counters = Array.from(document.querySelectorAll<HTMLElement>('[data-count]'));
@@ -514,14 +633,6 @@ if (finePointer && !reduced) {
       el.style.setProperty('--my', '0px');
     });
   });
-}
-
-/* ---------- Top bar state ---------- */
-const topbar = document.querySelector<HTMLElement>('[data-topbar]');
-if (topbar) {
-  const onScroll = () => topbar.classList.toggle('is-scrolled', window.scrollY > 24);
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
 }
 
 /* ---------- Contact form (FormSubmit relay) ---------- */

@@ -75,8 +75,8 @@ const placesBand = lang === 'tr'
   : ['ANKARA', 'İSTANBUL', 'ELAZIĞ', 'MALATYA', 'TÂRGU MUREȘ', 'VIENNA', 'PRAGUE', 'ROME'];
 ---
 <header class="topbar" data-topbar>
-  <a class="brand" href={lang === 'tr' ? '/tr/' : '/'} aria-label="Ömer Faruk Erdem">
-    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span>
+  <a class="brand" href={lang === 'tr' ? '/tr/' : '/'} >
+    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span><span class="sr-only"> · Ömer Faruk Erdem</span>
   </a>
   <nav class="topnav" aria-label={lang === 'tr' ? 'Bölümler' : 'Sections'}>
     <a href="#departures">{U(t.nav.departures)}</a>
@@ -85,9 +85,10 @@ const placesBand = lang === 'tr'
     <a href="#contact">{U(t.nav.contact)}</a>
   </nav>
   <div class="topbar__actions">
-    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'} aria-label={t.langSwitch.label}>
+    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'}>
       <span class:list={['lang__opt', lang === 'en' && 'is-on']}>EN</span>
       <span class:list={['lang__opt', lang === 'tr' && 'is-on']}>TR</span>
+      <span class="sr-only"> · {t.langSwitch.label}</span>
     </a>
     <a class="btn btn--ghost btn--sm" href={links.cv} download aria-label={t.cvLong}>
       <Icon name="download" /><span>{t.cv}</span>
@@ -162,7 +163,7 @@ const placesBand = lang === 'tr'
     <figure class="hero__gate">
       <figcaption class="gate__label" aria-hidden="true"><span>{t.hero.gate}</span><span class="gate__num">A1</span></figcaption>
       <div class="duo duo--hero">
-        <Image src={heroPhoto} alt={t.hero.photoAlt} widths={[480, 800, 1200]} sizes="(min-width: 1000px) 30vw, 92vw" loading="eager" fetchpriority="high" />
+        <Image src={heroPhoto} alt={t.hero.photoAlt} widths={[480, 640, 800, 1200]} sizes="(min-width: 1000px) 30vw, 92vw" loading="eager" fetchpriority="high" />
       </div>
     </figure>
   </section>
@@ -233,7 +234,7 @@ const placesBand = lang === 'tr'
               {r.photo && (
                 <figure class="gate-card__figure">
                   <div class="duo" data-parallax>
-                    <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720, 960]} sizes="(min-width: 1024px) 36vw, 90vw" style={`object-position:${photoPos[r.photo] ?? '50% 50%'}`} />
+                    <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 560, 720, 960]} sizes="(min-width: 1024px) 36vw, 90vw" style={`object-position:${photoPos[r.photo] ?? '50% 50%'}`} />
                   </div>
                   {r.photoCredit && <figcaption class="row__credit">{t.departures.photoBy}: {r.photoCredit}</figcaption>}
                 </figure>

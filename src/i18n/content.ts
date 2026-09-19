@@ -83,7 +83,7 @@ const en = {
   },
   departures: {
     heading: 'Departures',
-    sub: 'Where I have worked and studied, latest first. Open a row for the details.',
+    sub: 'Where I have worked and studied, latest first. Keep scrolling: each stop boards on top of the last.',
     photoBy: 'Photo',
     open: 'Details',
     close: 'Close',
@@ -346,7 +346,7 @@ const tr: Content = {
   },
   departures: {
     heading: 'Kalkışlar',
-    sub: 'Çalıştığım ve okuduğum yerler, en yeniden eskiye. Ayrıntılar için bir satırı aç.',
+    sub: 'Çalıştığım ve okuduğum yerler, en yeniden eskiye. Kaydırdıkça her durak bir öncekinin üstüne biner.',
     photoBy: 'Fotoğraf',
     open: 'Ayrıntılar',
     close: 'Kapat',

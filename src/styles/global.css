@@ -509,6 +509,15 @@ section { scroll-margin-top: 4.5rem; }
 .travel__cap { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; }
 .travel__cap > span { font-family: var(--f-data); font-size: 0.85rem; color: var(--ink-2); text-transform: uppercase; }
 
+/* Travel deck: the photos start as a pinned pile of postcards and are dealt into the row on scroll */
+.deck { margin-bottom: clamp(2.5rem, 6vw, 4.5rem); }
+.deck .travel { margin-bottom: 0; }
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .js .deck { height: 230vh; }
+  .js .deck__stage { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; padding-top: 3rem; }
+  .js .deck .travel__item .duo { aspect-ratio: auto; height: min(32rem, calc(100vh - 17rem)); box-shadow: 0 30px 60px -24px rgb(0 0 0 / 0.85); }
+  .js .deck .travel__item { will-change: transform; }
+}
 .certs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .cert__link {
   display: grid; grid-template-rows: auto auto 1fr auto; gap: 0.35rem; height: 100%;

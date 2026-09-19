@@ -332,12 +332,59 @@ if (!reduced) {
     updateParallax();
     updateWords();
     updateStack();
+    updateDeck();
   };
   queueMicrotask(onFrame); // run after the effect modules below are initialised
   if (lenis) lenis.on('scroll', onFrame);
   else window.addEventListener('scroll', onFrame, { passive: true });
   window.addEventListener('resize', onFrame);
   window.addEventListener('load', onFrame);
+}
+
+/* ---------- Travel deck: a pile of postcards dealt into a row as you scroll ---------- */
+const deck = document.querySelector<HTMLElement>('[data-deck]');
+const deckCards = deck ? Array.from(deck.querySelectorAll<HTMLElement>('[data-deck-card]')) : [];
+const deckWide = window.matchMedia('(min-width: 900px)');
+const DECK_TILT = [-7, 3, 9]; // degrees, as they lie in the pile
+const DECK_ORDER = [1, 2, 0]; // the top card (last in the DOM) is dealt first
+let deckOffsets: { x: number; y: number }[] = [];
+function measureDeck() {
+  deckCards.forEach((c) => {
+    c.style.transform = '';
+    const cap = c.querySelector<HTMLElement>('.travel__cap');
+    if (cap) cap.style.opacity = '';
+  });
+  deckOffsets = [];
+  if (!deck || !deckWide.matches) return;
+  const list = deckCards[0]?.parentElement?.getBoundingClientRect();
+  if (!list) return;
+  const cx = list.left + list.width / 2;
+  const cy = list.top + list.height / 2;
+  deckOffsets = deckCards.map((c) => {
+    const r = c.getBoundingClientRect();
+    return { x: cx - (r.left + r.width / 2), y: cy - (r.top + r.height / 2) };
+  });
+  updateDeck();
+}
+function updateDeck() {
+  if (!deck || !deckOffsets.length) return;
+  const r = deck.getBoundingClientRect();
+  const range = Math.max(1, r.height - window.innerHeight);
+  const p = clamp01(-r.top / range / 0.8); // finish dealing with a short hold at the end
+  deckCards.forEach((c, i) => {
+    const q = clamp01((p - DECK_ORDER[i] * 0.2) / 0.6);
+    const k = Math.pow(1 - q, 3); // ease-out: 1 in the pile → 0 in place
+    const o = deckOffsets[i];
+    const cap = c.querySelector<HTMLElement>('.travel__cap');
+    if (cap) cap.style.opacity = clamp01((q - 0.6) / 0.4).toFixed(3); // caption appears as the card lands
+    c.style.transform = `translate3d(${(o.x * k).toFixed(1)}px,${(o.y * k + 24 * k).toFixed(1)}px,0) rotate(${(DECK_TILT[i] * k).toFixed(2)}deg) scale(${(1 - 0.1 * k).toFixed(3)})`;
+  });
+}
+if (!reduced && deck) {
+  measureDeck();
+  window.addEventListener('resize', measureDeck);
+  window.addEventListener('load', measureDeck);
+  deckWide.addEventListener('change', measureDeck);
 }
 
 /* ---------- Ghost headings: huge outlined words drift sideways with scroll ---------- */

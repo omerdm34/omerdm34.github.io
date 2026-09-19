@@ -392,20 +392,24 @@ const placesBand = lang === 'tr'
       </div>
     </div>
 
-    <h3 class="more__h">{U(t.beyond.travelHeading)}</h3>
-    <ul class="travel">
-      {t.beyond.travel.map((d, i) => (
-        <li class="travel__item" data-reveal={i % 2 ? 'up' : i === 0 ? 'left' : 'right'} style={`--d:${i * 90}ms`}>
-          <div class="duo" data-reveal="photo" data-parallax style={`--d:${i * 90 + 120}ms`}>
-            <Image src={photos[d.photo as keyof typeof photos]} alt={d.alt} widths={[400, 640]} sizes="(min-width: 1024px) 30vw, 90vw" />
-          </div>
-          <div class="travel__cap">
-            <Flap text={d.code} class="flaps--md" />
-            <span>{U(d.city)}</span>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div class="deck" data-deck>
+      <div class="deck__stage">
+        <h3 class="more__h">{U(t.beyond.travelHeading)}</h3>
+        <ul class="travel">
+          {t.beyond.travel.map((d) => (
+            <li class="travel__item" data-deck-card>
+              <div class="duo" data-parallax>
+                <Image src={photos[d.photo as keyof typeof photos]} alt={d.alt} widths={[400, 640]} sizes="(min-width: 1024px) 30vw, 90vw" />
+              </div>
+              <div class="travel__cap">
+                <Flap text={d.code} class="flaps--md" />
+                <span>{U(d.city)}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
 
     <h3 class="more__h">{U(t.beyond.certsHeading)}</h3>
     <ul class="certs">

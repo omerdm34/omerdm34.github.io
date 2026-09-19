@@ -266,6 +266,8 @@ main { overflow-x: clip; }
 }
 .js [data-reveal='left']:not(.is-in) { opacity: 0; transform: translate3d(-72px, 0, 0); }
 .js [data-reveal='right']:not(.is-in) { opacity: 0; transform: translate3d(72px, 0, 0); }
+.js [data-reveal='flip'] { transform-origin: 50% 0; transition-duration: 1100ms, 500ms, 0ms; }
+.js [data-reveal='flip']:not(.is-in) { opacity: 0; transform: rotateX(-82deg); }
 .js [data-reveal='up']:not(.is-in) { opacity: 0; transform: translate3d(0, 48px, 0); }
 .js [data-reveal='photo'] img { transition: transform 1200ms var(--ease-out); transition-delay: var(--d, 0ms); }
 .js [data-reveal='photo']:not(.is-in) { clip-path: inset(0 100% 0 0); }
@@ -518,7 +520,16 @@ section { scroll-margin-top: 4.5rem; }
   .js .deck .travel__item .duo { aspect-ratio: auto; height: min(32rem, calc(100vh - 17rem)); box-shadow: 0 30px 60px -24px rgb(0 0 0 / 0.85); }
   .js .deck .travel__item { will-change: transform; }
 }
-.certs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.certs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; perspective: 1400px; }
+/* Hover tilt with a moving glare (set by main.ts on fine pointers) */
+.cert__link { position: relative; overflow: hidden; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.cert__link::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(28rem circle at var(--gx, 50%) var(--gy, 0%), rgb(255 255 255 / 0.1), transparent 45%);
+  transition: opacity 240ms var(--ease-out);
+}
+.cert__link.is-tilting::after { opacity: 1; }
+.cert__link.is-tilting { transition: border-color 180ms var(--ease-out), transform 90ms linear; }
 .cert__link {
   display: grid; grid-template-rows: auto auto 1fr auto; gap: 0.35rem; height: 100%;
   padding: 0.75rem 0.75rem 0.9rem; background: var(--board-2); border: 1px solid var(--line);

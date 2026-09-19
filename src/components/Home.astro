@@ -414,9 +414,9 @@ const placesBand = lang === 'tr'
     <h3 class="more__h">{U(t.beyond.certsHeading)}</h3>
     <ul class="certs">
       {t.beyond.certs.map((c, i) => (
-        <li class="cert" data-reveal="right" style={`--d:${i * 70}ms`}>
+        <li class="cert" data-reveal="flip" style={`--d:${i * 140}ms`}>
           {c.img ? (
-            <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener">
+            <a class="cert__link" href={certFull[c.img]} target="_blank" rel="noopener" data-tilt>
               <Image src={certImgs[c.img as keyof typeof certImgs]} alt="" widths={[360]} sizes="360px" class="cert__img" />
               <span class="cert__name">{c.name}</span>
               <span class="cert__by">{c.by}</span>

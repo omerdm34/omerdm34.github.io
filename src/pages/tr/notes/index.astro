@@ -1,0 +1,9 @@
+---
+import Base from '../../../layouts/Base.astro';
+import NotesIndex from '../../../components/NotesIndex.astro';
+import { notesUi } from '../../../i18n/notes';
+const ui = notesUi.tr;
+---
+<Base lang="tr" title={ui.title} description={ui.description} path="/tr/notes/" altPath="/notes/">
+  <NotesIndex lang="tr" />
+</Base>

@@ -1,0 +1,89 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Flap from './Flap.astro';
+import Icon from './Icon.astro';
+import Topbar from './Topbar.astro';
+import { content, type Lang } from '../i18n/content';
+import { notesUi, readMinutes, noteSlug } from '../i18n/notes';
+import { caseStudies } from '../i18n/projects';
+
+interface Props { lang: Lang; entry: CollectionEntry<'notes'> }
+const { lang, entry } = Astro.props;
+const t = content[lang];
+const ui = notesUi[lang];
+const U = (v: string) => v.toLocaleUpperCase(lang);
+const home = lang === 'tr' ? '/tr/' : '/';
+const base = home + 'notes/';
+const slug = noteSlug(entry.id);
+const other = (lang === 'tr' ? '/notes/' : '/tr/notes/') + slug + '/';
+const { Content } = await render(entry);
+const d = entry.data;
+const fmt = new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+const project = d.project ? caseStudies[lang].find((c) => c.slug === d.project) : undefined;
+
+const all = (await getCollection('notes', (n) => n.id.startsWith(lang + '/'))).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id),
+);
+const next = all[(all.findIndex((n) => n.id === entry.id) + 1) % all.length];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.date.toISOString().slice(0, 10),
+  inLanguage: lang,
+  author: { '@type': 'Person', name: 'Ömer Faruk Erdem', url: Astro.site!.origin + home },
+  mainEntityOfPage: Astro.site!.origin + base + slug + '/',
+  keywords: d.tags.join(', '),
+};
+---
+<Topbar lang={lang} other={other} solid current="notes" />
+
+<main id="main" class="note">
+  <article>
+    <header class="note__head wrap">
+      <a class="case__back" href={base}><Icon name="arrow" class="icon case__back-icon" />{U(ui.back)}</a>
+      <div class="proj__meta">
+        <Flap text={d.code} class="flaps--sm" />
+        <time class="proj__date" datetime={d.date.toISOString().slice(0, 10)}>{U(fmt.format(d.date))}</time>
+        <span class="proj__date">· {U(ui.minRead(readMinutes(entry.body ?? '', lang)))}</span>
+      </div>
+      <h1 class="note__title">{d.title}</h1>
+      <p class="note__lede">{d.description}</p>
+      <ul class="tags note__tags">{d.tags.map((tag) => <li>{tag}</li>)}</ul>
+    </header>
+
+    <div class="prose wrap">
+      <Content />
+    </div>
+  </article>
+
+  {project && (
+    <aside class="note__project wrap" aria-label={ui.caseStudy}>
+      <span class="note__project-label">{U(ui.caseStudy)}</span>
+      <a class="note__project-link" href={home + 'projects/' + project.slug + '/'}>
+        <Flap text={project.code} class="flaps--sm" />
+        <span>{project.name}</span>
+        <Icon name="arrow" />
+      </a>
+    </aside>
+  )}
+
+  {next && next.id !== entry.id && (
+    <a class="case__next" href={base + noteSlug(next.id) + '/'}>
+      <span class="case__next-label">{U(ui.next)}</span>
+      <span class="case__next-name note__next-name">{next.data.title}<Icon name="arrow" class="icon case__next-icon" /></span>
+    </a>
+  )}
+</main>
+
+<footer class="footer wrap">
+  <span>© 2026 · {t.footer.built}</span>
+  <a href={home}>{lang === 'tr' ? 'Ana sayfa' : 'Home'}</a>
+</footer>
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+<script>
+  import '../scripts/main';
+</script>

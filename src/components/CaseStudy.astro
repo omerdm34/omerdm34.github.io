@@ -1,6 +1,9 @@
 ---
 import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import { notesUi, noteSlug } from '../i18n/notes';
 import Flap from './Flap.astro';
+import Topbar from './Topbar.astro';
 import Icon from './Icon.astro';
 import { content, links, type Lang } from '../i18n/content';
 import { caseStudies, caseUi, datathonModels } from '../i18n/projects';
@@ -48,31 +51,13 @@ const screensBySlug: Record<string, Shot[]> = {
   ],
 };
 const screens = screensBySlug[slug] ?? [];
+const note = (await getCollection('notes', (n) => n.id.startsWith(lang + '/') && n.data.project === slug))[0];
+const noteHref = note ? home + 'notes/' + noteSlug(note.id) + '/' : '';
 const web = screens.some((s) => s.kind === 'browser');
 const maxMse = datathonModels[0].mse;
 const fmt = (n: number) => n.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', { maximumFractionDigits: 2 });
 ---
-<header class="topbar is-solid" data-topbar>
-  <a class="brand" href={home}>
-    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span><span class="sr-only"> · Ömer Faruk Erdem</span>
-  </a>
-  <nav class="topnav" aria-label={lang === 'tr' ? 'Bölümler' : 'Sections'}>
-    <a href={home + '#departures'}>{U(t.nav.departures)}</a>
-    <a href={home + '#projects'}>{U(t.nav.projects)}</a>
-    <a href={home + '#beyond'}>{U(t.nav.beyond)}</a>
-    <a href={home + '#contact'}>{U(t.nav.contact)}</a>
-  </nav>
-  <div class="topbar__actions">
-    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'}>
-      <span class:list={['lang__opt', lang === 'en' && 'is-on']}>EN</span>
-      <span class:list={['lang__opt', lang === 'tr' && 'is-on']}>TR</span>
-      <span class="sr-only"> · {t.langSwitch.label}</span>
-    </a>
-    <a class="btn btn--ghost btn--sm" href={links.cv} download aria-label={t.cvLong}>
-      <Icon name="download" /><span>{t.cv}</span>
-    </a>
-  </div>
-</header>
+<Topbar lang={lang} other={other} solid />
 
 <main id="main" class="case">
   <section class="case__head wrap">
@@ -170,6 +155,13 @@ const fmt = (n: number) => n.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', {
       {c.links.map((l) => (
         <a class="proj__link" href={l.href} target="_blank" rel="noopener">{l.label}<Icon name="external" /></a>
       ))}
+      {note && (
+        <a class="note__project-link case__note" href={noteHref}>
+          <span class="case__note-label">{U(notesUi[lang].heading)}</span>
+          <span class="case__note-title">{note.data.title}</span>
+          <Icon name="arrow" />
+        </a>
+      )}
     </div>
   </section>
 

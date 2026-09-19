@@ -1,9 +1,12 @@
 ---
 import { Image, getImage } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import Flap from './Flap.astro';
+import Topbar from './Topbar.astro';
 import Icon from './Icon.astro';
 import { content, links, datathonScores, type Lang } from '../i18n/content';
 import { caseStudies, caseUi } from '../i18n/projects';
+import { notesUi, readMinutes, noteSlug } from '../i18n/notes';
 
 import heroPhoto from '../assets/photos/hero.jpg';
 import droneWorkshop from '../assets/photos/drone-workshop.jpg';
@@ -68,33 +71,17 @@ const maxScore = datathonScores[0];
 const statusClass = (s: string) =>
   ['LIVE', 'YAYINDA', 'EN ROUTE', 'YOLDA', 'BOARDING', 'BİNİŞ'].includes(s) ? 'status status--live' : 'status';
 const other = lang === 'tr' ? '/' : '/tr/';
+const nui = notesUi[lang];
+const notesBase = (lang === 'tr' ? '/tr/' : '/') + 'notes/';
+const notes = (await getCollection('notes', (n) => n.id.startsWith(lang + '/')))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id));
 const U = (v: string) => v.toLocaleUpperCase(lang);
 const stackBand = ['PYTHON', 'KOTLIN', 'TYPESCRIPT', 'C++', 'QML', 'PYTORCH', 'TENSORFLOW LITE', 'MEDIAPIPE', 'SCIKIT-LEARN', 'LIGHTGBM', 'NEXT.JS', 'ASTRO', 'CLOUDFLARE WORKERS', 'UNREAL ENGINE 5', 'ESP32'];
 const placesBand = lang === 'tr'
   ? ['ANKARA', 'İSTANBUL', 'ELAZIĞ', 'MALATYA', 'TÂRGU MUREȘ', 'VİYANA', 'PRAG', 'ROMA']
   : ['ANKARA', 'İSTANBUL', 'ELAZIĞ', 'MALATYA', 'TÂRGU MUREȘ', 'VIENNA', 'PRAGUE', 'ROME'];
 ---
-<header class="topbar" data-topbar>
-  <a class="brand" href={lang === 'tr' ? '/tr/' : '/'} >
-    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span><span class="sr-only"> · Ömer Faruk Erdem</span>
-  </a>
-  <nav class="topnav" aria-label={lang === 'tr' ? 'Bölümler' : 'Sections'}>
-    <a href="#departures">{U(t.nav.departures)}</a>
-    <a href="#projects">{U(t.nav.projects)}</a>
-    <a href="#beyond">{U(t.nav.beyond)}</a>
-    <a href="#contact">{U(t.nav.contact)}</a>
-  </nav>
-  <div class="topbar__actions">
-    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'}>
-      <span class:list={['lang__opt', lang === 'en' && 'is-on']}>EN</span>
-      <span class:list={['lang__opt', lang === 'tr' && 'is-on']}>TR</span>
-      <span class="sr-only"> · {t.langSwitch.label}</span>
-    </a>
-    <a class="btn btn--ghost btn--sm" href={links.cv} download aria-label={t.cvLong}>
-      <Icon name="download" /><span>{t.cv}</span>
-    </a>
-  </div>
-</header>
+<Topbar lang={lang} other={other} onHome />
 
 <div class="preloader" data-preloader aria-hidden="true">
   <div class="preloader__board">
@@ -346,6 +333,24 @@ const placesBand = lang === 'tr'
           <li class="more__row"><span class="more__name">{m.name}</span><span class="more__date">{m.date}</span><p>{m.text}</p></li>
         ))}
       </ul>
+
+      {notes.length > 0 && (
+        <div class="logmini">
+          <h3 class="more__h">{U(nui.homeHeading)}</h3>
+          <ul class="logmini__list">
+            {notes.map((n) => (
+              <li>
+                <a class="logmini__row" href={notesBase + noteSlug(n.id) + '/'}>
+                  <Flap text={n.data.code} class="flaps--sm" />
+                  <span class="logmini__title">{n.data.title}</span>
+                  <span class="logmini__time">{nui.minRead(readMinutes(n.body ?? '', lang))}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a class="proj__link" href={notesBase}>{nui.all}<Icon name="arrow" /></a>
+        </div>
+      )}
 
       {repos.length > 0 && (
         <div class="gh">

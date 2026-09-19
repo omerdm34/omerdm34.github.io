@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import Flap from './Flap.astro';
+import Icon from './Icon.astro';
+import Topbar from './Topbar.astro';
+import { content, type Lang } from '../i18n/content';
+import { notesUi, readMinutes, noteSlug } from '../i18n/notes';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = content[lang];
+const ui = notesUi[lang];
+const U = (v: string) => v.toLocaleUpperCase(lang);
+const home = lang === 'tr' ? '/tr/' : '/';
+const base = home + 'notes/';
+const other = (lang === 'tr' ? '/' : '/tr/') + 'notes/';
+const fmt = new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+const notes = (await getCollection('notes', (n) => n.id.startsWith(lang + '/')))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id));
+---
+<Topbar lang={lang} other={other} solid current="notes" />
+
+<main id="main" class="log">
+  <section class="log__head wrap">
+    <h1 class="sr-only">{ui.heading}</h1>
+    <Flap text={U(ui.heading)} class="flaps--lg" />
+    <p class="section-sign__sub">{ui.sub}</p>
+  </section>
+
+  <ol class="log__list wrap">
+    {notes.map((n, i) => (
+      <li class="entry" data-reveal="up" style={`--d:${i * 90}ms`}>
+        <a class="entry__link" href={base + noteSlug(n.id) + '/'}>
+          <span class="entry__meta">
+            <Flap text={n.data.code} class="flaps--sm" />
+            <time datetime={n.data.date.toISOString().slice(0, 10)}>{U(fmt.format(n.data.date))}</time>
+            <span>{U(ui.minRead(readMinutes(n.body ?? '', lang)))}</span>
+          </span>
+          <span class="entry__title">{n.data.title}</span>
+          <span class="entry__desc">{n.data.description}</span>
+          <span class="entry__tags">{n.data.tags.map((tag) => <span>{tag}</span>)}</span>
+          <Icon name="arrow" class="icon entry__arrow" />
+        </a>
+      </li>
+    ))}
+  </ol>
+</main>
+
+<footer class="footer wrap">
+  <span>© 2026 · {t.footer.built}</span>
+  <a href={home}>{lang === 'tr' ? 'Ana sayfa' : 'Home'}</a>
+</footer>
+
+<script>
+  import '../scripts/main';
+</script>

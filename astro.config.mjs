@@ -5,4 +5,5 @@ export default defineConfig({
   trailingSlash: 'ignore',
   build: { inlineStylesheets: 'always' },
   image: { responsiveStyles: false },
+  markdown: { shikiConfig: { theme: 'vitesse-dark', wrap: false } },
 });

@@ -1,0 +1,43 @@
+---
+import Icon from './Icon.astro';
+import { content, links, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+  /** the same page in the other language */
+  other: string;
+  /** on the home page the section links are in-page anchors */
+  onHome?: boolean;
+  /** subpages start with a solid bar */
+  solid?: boolean;
+  /** highlights the log link on notes pages */
+  current?: 'notes';
+}
+const { lang, other, onHome = false, solid = false, current } = Astro.props;
+const t = content[lang];
+const U = (v: string) => v.toLocaleUpperCase(lang);
+const home = lang === 'tr' ? '/tr/' : '/';
+const at = (hash: string) => (onHome ? hash : home + hash);
+---
+<header class:list={['topbar', solid && 'is-solid']} data-topbar>
+  <a class="brand" href={home}>
+    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span><span class="sr-only"> · Ömer Faruk Erdem</span>
+  </a>
+  <nav class="topnav" aria-label={lang === 'tr' ? 'Bölümler' : 'Sections'}>
+    <a href={at('#departures')}>{U(t.nav.departures)}</a>
+    <a href={at('#projects')}>{U(t.nav.projects)}</a>
+    <a href={at('#beyond')}>{U(t.nav.beyond)}</a>
+    <a href={home + 'notes/'} aria-current={current === 'notes' ? 'page' : undefined}>{U(t.nav.notes)}</a>
+    <a href={at('#contact')}>{U(t.nav.contact)}</a>
+  </nav>
+  <div class="topbar__actions">
+    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'}>
+      <span class:list={['lang__opt', lang === 'en' && 'is-on']}>EN</span>
+      <span class:list={['lang__opt', lang === 'tr' && 'is-on']}>TR</span>
+      <span class="sr-only"> · {t.langSwitch.label}</span>
+    </a>
+    <a class="btn btn--ghost btn--sm" href={links.cv} download aria-label={t.cvLong}>
+      <Icon name="download" /><span>{t.cv}</span>
+    </a>
+  </div>
+</header>

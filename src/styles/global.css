@@ -750,8 +750,9 @@ main { isolation: isolate; }
 @media (max-width: 560px) { .stats__grid { grid-template-columns: 1fr; } }
 
 /* ============ Word-by-word reading light ============ */
-.js [data-words].is-split .word { opacity: 0.32; transition: opacity 260ms var(--ease-out), color 260ms var(--ease-out); }
-.js [data-words].is-split .word.is-lit { opacity: 1; }
+/* unlit words stay readable (ink-3 is ~5.6:1 on the board); the light brings them up to full ink */
+.js [data-words].is-split .word { color: var(--ink-3); transition: color 260ms var(--ease-out); }
+.js [data-words].is-split .word.is-lit { color: var(--ink); }
 .js [data-words].is-split p + p .word.is-lit { color: var(--ink-2); }
 
 /* ============ Parallax frames ============ */

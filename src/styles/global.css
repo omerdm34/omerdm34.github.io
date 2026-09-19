@@ -270,7 +270,6 @@ main { overflow-x: clip; }
 .js [data-reveal='photo'] img { transition: transform 1200ms var(--ease-out); transition-delay: var(--d, 0ms); }
 .js [data-reveal='photo']:not(.is-in) { clip-path: inset(0 100% 0 0); }
 .js [data-reveal='photo']:not(.is-in) img { transform: scale(1.12); }
-.row__panel .duo img { animation: gate-open 900ms var(--ease-out) both; }
 
 /* ============ Sections ============ */
 section { scroll-margin-top: 4.5rem; }
@@ -292,39 +291,60 @@ section { scroll-margin-top: 4.5rem; }
 .intro__body { order: 2; }
 .facts { order: 1; }
 
-/* ============ Departures table ============ */
+/* ============ Departures: stacked gate cards ============ */
+/* Each card sticks, the next one slides up over it like a new window.
+   --stick is set per card by main.ts so cards taller than the viewport
+   stick by their bottom edge and never hide content. */
 .departures { padding-block: clamp(4rem, 9vw, 8rem); }
-.table { border-top: 2px solid var(--ink); }
-.table__head, .row__btn {
-  display: grid;
-  grid-template-columns: 9.5rem 7.5rem minmax(0, 1fr) 10rem 9rem 2rem;
-  gap: 1rem; align-items: center;
+.stack { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(1.5rem, 4vh, 3rem); }
+.gate-card { position: sticky; top: var(--stick, calc(4.75rem + var(--i) * 0.75rem)); }
+.gate-card__inner {
+  position: relative; overflow: hidden;
+  background: var(--board-2); border: 1px solid var(--line); border-top: 2px solid var(--sign);
+  border-radius: var(--radius);
+  box-shadow: 0 -24px 48px -12px rgb(0 0 0 / 0.65);
+  transform-origin: 50% 0;
+  will-change: transform;
+  display: flex; flex-direction: column;
+  min-height: calc(100svh - 76px - 4 * 12px - 24px);
 }
-.table__head {
-  padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--line);
-  font-family: var(--f-data); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3);
+.gate-card__body { flex: 1; }
+.gate-card__body--photo .gate-card__figure { align-self: stretch; display: flex; flex-direction: column; }
+.gate-card__body--photo .gate-card__figure .duo { flex: 1; min-height: 16rem; aspect-ratio: auto; }
+.gate-card__shade {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: var(--board); opacity: 0;
 }
-.row { border-bottom: 1px solid var(--line); }
-.row__summary { font: inherit; }
-.row__btn {
-  width: 100%; padding: 1.1rem 0.75rem; background: none; border: 0; text-align: left; cursor: pointer;
-  transition: background-color 160ms var(--ease-out);
+.gate-card__bar {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  gap: 1rem 1.75rem; align-items: end;
+  padding: 1rem clamp(1rem, 2.5vw, 2rem); border-bottom: 1px solid var(--line);
+  background: var(--board);
 }
-@media (hover: hover) { .row__btn:hover { background: var(--board-2); } .row__btn:hover .row__chev { color: var(--sign); } }
-.row__dest { display: grid; gap: 0.15rem; min-width: 0; }
-.row__org { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.35rem, 2.2vw, 2rem); line-height: 1.05; text-transform: uppercase; }
-.row__role { color: var(--ink-2); font-size: 0.98rem; line-height: 1.35; }
-.row__gate { font-family: var(--f-data); font-size: 0.85rem; text-transform: uppercase; color: var(--ink-2); }
-.row__chev { display: grid; place-items: center; color: var(--ink-3); transition: transform 280ms var(--ease-out), color 160ms; }
-.row.is-open .row__chev { transform: rotate(180deg); color: var(--sign); }
-.row.is-open .row__btn { background: var(--board-2); }
-.row__panel { background: var(--board-2); }
-.row__detail { display: grid; gap: 2rem; padding: 0.5rem 0.75rem 2rem calc(17rem + 2rem + 0.75rem); }
-.row__detail--photo { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
-.row__detail .duo { aspect-ratio: 4 / 3; border-radius: 2px; }
-.row__figure { margin: 0; }
+.gate-card__cell { display: grid; gap: 0.4rem; min-width: 0; }
+.gate-card__label { font-family: var(--f-data); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--ink-3); }
+.gate-card__gate { font-family: var(--f-data); font-size: 0.9rem; text-transform: uppercase; color: var(--ink-2); padding-bottom: 0.35rem; }
+.gate-card__count { font-family: var(--f-data); font-size: 0.75rem; color: var(--ink-3); padding-bottom: 0.4rem; }
+.gate-card__body {
+  display: grid; gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start;
+  padding: clamp(1.4rem, 3vw, 2.5rem) clamp(1rem, 2.5vw, 2rem) clamp(1.6rem, 3vw, 2.5rem);
+}
+.gate-card__body--photo { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+.gate-card__text { display: grid; align-content: start; }
+.gate-card__org {
+  font-family: var(--f-display); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(2rem, 1.2rem + 3.2vw, 4.25rem); line-height: 0.95; letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+.gate-card__role { margin-top: 0.6rem; color: var(--ink-2); font-size: clamp(1rem, 0.95rem + 0.3vw, 1.2rem); max-width: 52ch; }
+.gate-card__text .row__logo { margin: 1.4rem 0 1.4rem; }
+.gate-card__text .ticks { margin-top: 0.4rem; }
+.gate-card__text .row__logo + .ticks { margin-top: 0; }
+.gate-card__figure { margin: 0; }
+.gate-card__figure .duo img { position: absolute; inset: 0; }
+.gate-card__figure .duo { aspect-ratio: 4 / 3; border-radius: 2px; }
 .row__credit { margin-top: 0.4rem; font-family: var(--f-data); font-size: 0.72rem; color: var(--ink-3); }
-.row__logo { display: block; width: auto; height: 2.4rem; max-width: min(24rem, 100%); object-fit: contain; object-position: left center; margin: 0.4rem 0 1.4rem; }
+.row__logo { display: block; width: auto; height: 2.4rem; max-width: min(24rem, 100%); object-fit: contain; object-position: left center; }
 .row__logo--mono { filter: brightness(0) invert(0.93); }
 .row__logo--aselsan { height: 1.5rem; }
 .row__logo--umfst { height: 3.2rem; }
@@ -337,21 +357,22 @@ section { scroll-margin-top: 4.5rem; }
   content: ''; position: absolute; left: 0; top: 0.62em; width: 0.8rem; height: 2px; background: var(--sign);
 }
 
-@media (max-width: 1080px) {
-  .table__head { display: none; }
-  .row__btn {
-    grid-template-columns: auto auto 1fr auto;
-    grid-template-areas: 'time code . chev' 'dest dest dest dest' 'gate gate status status';
-    gap: 0.6rem 0.75rem; padding-inline: 0.25rem;
-  }
-  .row__time { grid-area: time; }
-  .row__code { grid-area: code; }
-  .row__dest { grid-area: dest; }
-  .row__gate { grid-area: gate; align-self: center; }
-  .row__status { grid-area: status; justify-self: end; }
-  .row__chev { grid-area: chev; justify-self: end; }
-  .row__detail { padding: 0.5rem 0.25rem 1.75rem; }
-  .row__detail--photo { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .gate-card__body--photo { grid-template-columns: 1fr; }
+  .gate-card__body--photo .gate-card__figure .duo { flex: none; aspect-ratio: 16 / 10; min-height: 0; }
+  .gate-card__bar { grid-template-columns: auto auto 1fr; gap: 0.75rem 1rem; }
+  .gate-card__cell--gate { grid-column: 1 / 3; }
+  .gate-card__cell--status { grid-column: 3; justify-self: end; }
+  .gate-card__count { grid-row: 1; grid-column: 3; justify-self: end; align-self: start; }
+}
+@media (max-width: 560px) {
+  .gate-card__body--photo .gate-card__figure .duo { aspect-ratio: 3 / 2; }
+  .ticks { gap: 0.7rem; }
+}
+/* Reduced motion: a plain list, nothing pins or moves. */
+@media (prefers-reduced-motion: reduce) {
+  .gate-card { position: static; }
+  .gate-card__inner { will-change: auto; box-shadow: none; min-height: 0; }
 }
 
 /* ============ Projects rail ============ */

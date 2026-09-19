@@ -209,46 +209,40 @@ const placesBand = lang === 'tr'
       <p class="section-sign__sub">{t.departures.sub}</p>
     </div>
 
-    <div class="table" role="list">
-      <div class="table__head" aria-hidden="true">
-        <span>{U(t.board.colTime)}</span><span>{U(t.board.colFlight)}</span><span>{U(t.board.colDestination)}</span><span>{U(t.board.colGate)}</span><span>{U(t.board.colStatus)}</span>
-      </div>
+    <ol class="stack" data-stack>
       {t.departures.rows.map((r, i) => (
-        <article class="row" role="listitem" data-row data-reveal="right" style={`--d:${i * 70}ms`}>
-          <h3 class="row__summary">
-            <button class="row__btn" type="button" aria-expanded="false" aria-controls={`dep-${i}`} data-row-toggle>
-              <Flap text={r.time} class="flaps--sm row__time" pad={8} />
-              <Flap text={r.code} class="flaps--sm row__code" pad={6} />
-              <span class="row__dest">
-                <span class="row__org">{r.org}</span>
-                <span class="row__role">{r.destination}</span>
-              </span>
-              <span class="row__gate">{r.gate}</span>
-              <Flap text={r.status} class={`flaps--sm row__status ${statusClass(r.status)}`} pad={8} />
-              <span class="row__chev" aria-hidden="true"><Icon name="arrow-down" /></span>
-            </button>
-          </h3>
-          <div class="row__panel" id={`dep-${i}`} hidden>
-            <div class:list={['row__detail', r.photo && 'row__detail--photo']}>
-              <div class="row__text">
+        <li class="gate-card" data-card style={`--i:${i}`}>
+          <article class="gate-card__inner" aria-labelledby={`dep-${i}`}>
+            <span class="gate-card__shade" aria-hidden="true" data-card-shade></span>
+            <header class="gate-card__bar">
+              <div class="gate-card__cell"><span class="gate-card__label">{U(t.board.colTime)}</span><Flap text={r.time} class="flaps--sm" pad={8} /></div>
+              <div class="gate-card__cell"><span class="gate-card__label">{U(t.board.colFlight)}</span><Flap text={r.code} class="flaps--sm" pad={6} /></div>
+              <div class="gate-card__cell gate-card__cell--gate"><span class="gate-card__label">{U(t.board.colGate)}</span><span class="gate-card__gate">{r.gate}</span></div>
+              <div class="gate-card__cell gate-card__cell--status"><span class="gate-card__label">{U(t.board.colStatus)}</span><Flap text={r.status} class={`flaps--sm ${statusClass(r.status)}`} pad={8} /></div>
+              <span class="gate-card__count" aria-hidden="true">{String(i + 1).padStart(2, '0')} / {String(t.departures.rows.length).padStart(2, '0')}</span>
+            </header>
+            <div class:list={['gate-card__body', r.photo && 'gate-card__body--photo']}>
+              <div class="gate-card__text">
+                <h3 id={`dep-${i}`} class="gate-card__org">{r.org}</h3>
+                <p class="gate-card__role">{r.destination}</p>
                 {r.logo && (
                   <Image src={logos[r.logo].src} alt={logos[r.logo].name} class:list={['row__logo', `row__logo--${r.logo}`, logos[r.logo].mono && 'row__logo--mono']} height={120} />
                 )}
                 <ul class="ticks">{r.details.map((d) => <li>{d}</li>)}</ul>
               </div>
               {r.photo && (
-                <figure class="row__figure">
+                <figure class="gate-card__figure">
                   <div class="duo" data-parallax>
-                    <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720]} sizes="(min-width: 1024px) 30vw, 90vw" style={`object-position:${photoPos[r.photo] ?? '50% 50%'}`} />
+                    <Image src={photos[r.photo]} alt={r.photoAlt ?? ''} widths={[420, 720, 960]} sizes="(min-width: 1024px) 36vw, 90vw" style={`object-position:${photoPos[r.photo] ?? '50% 50%'}`} />
                   </div>
                   {r.photoCredit && <figcaption class="row__credit">{t.departures.photoBy}: {r.photoCredit}</figcaption>}
                 </figure>
               )}
             </div>
-          </div>
-        </article>
+          </article>
+        </li>
       ))}
-    </div>
+    </ol>
   </section>
 
   <!-- Projects / arrivals -->

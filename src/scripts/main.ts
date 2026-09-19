@@ -152,31 +152,40 @@ if (!reduced) {
 
 if (reduced) preloader?.remove();
 
-/* ---------- Departure rows ---------- */
-document.querySelectorAll<HTMLButtonElement>('[data-row-toggle]').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
-    const row = btn.closest<HTMLElement>('[data-row]')!;
-    const open = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', String(!open));
-    row.classList.toggle('is-open', !open);
-    if (open) {
-      panel.hidden = true;
-    } else {
-      panel.hidden = false;
-      if (!reduced) {
-        panel.animate(
-          [
-            { clipPath: 'inset(0 0 100% 0)', opacity: 0.2 },
-            { clipPath: 'inset(0 0 0% 0)', opacity: 1 },
-          ],
-          { duration: 420, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
-        );
-      }
-    }
-    lenis?.resize();
+/* ---------- Departures: gate cards stack, each new one slides up over the last ---------- */
+const stackCards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]')).map((card) => ({
+  card,
+  inner: card.firstElementChild as HTMLElement,
+  shade: card.querySelector<HTMLElement>('[data-card-shade]'),
+  stick: 0,
+}));
+function measureStack() {
+  const vh = window.innerHeight;
+  stackCards.forEach((c, i) => {
+    // Pin under the topbar with a small step so earlier cards peek out above;
+    // a card taller than the screen pins by its bottom edge instead.
+    const base = 76 + i * 12;
+    c.stick = Math.min(base, vh - c.card.offsetHeight - 16);
+    c.card.style.setProperty('--stick', `${c.stick}px`);
   });
-});
+}
+function updateStack() {
+  const vh = window.innerHeight;
+  for (let i = 0; i < stackCards.length - 1; i++) {
+    const cur = stackCards[i];
+    const next = stackCards[i + 1];
+    const top = next.card.getBoundingClientRect().top;
+    const p = clamp01((vh - top) / Math.max(1, vh - next.stick)); // 0 → 1 while the next card rises
+    cur.inner.style.transform = `scale(${(1 - p * 0.06).toFixed(4)})`;
+    if (cur.shade) cur.shade.style.opacity = (p * 0.6).toFixed(3);
+  }
+}
+if (!reduced && stackCards.length) {
+  measureStack();
+  window.addEventListener('resize', measureStack);
+  window.addEventListener('load', measureStack);
+  new ResizeObserver(measureStack).observe(document.querySelector('[data-stack]')!);
+}
 
 /* ---------- Projects rail: vertical scroll drives a horizontal track ---------- */
 const rail = document.querySelector<HTMLElement>('[data-rail]');
@@ -322,6 +331,7 @@ if (!reduced) {
     updateGhosts();
     updateParallax();
     updateWords();
+    updateStack();
   };
   queueMicrotask(onFrame); // run after the effect modules below are initialised
   if (lenis) lenis.on('scroll', onFrame);

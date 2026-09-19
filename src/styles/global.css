@@ -296,7 +296,7 @@ section { scroll-margin-top: 4.5rem; }
    --stick is set per card by main.ts so cards taller than the viewport
    stick by their bottom edge and never hide content. */
 .departures { padding-block: clamp(4rem, 9vw, 8rem); }
-.stack { list-style: none; margin: 0; padding-block: 0; display: grid; gap: clamp(1.5rem, 4vh, 3rem); }
+.stack { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(1.5rem, 4vh, 3rem); }
 .gate-card { position: sticky; top: var(--stick, calc(4.75rem + var(--i) * 0.75rem)); }
 .gate-card__inner {
   position: relative; overflow: hidden;
@@ -375,8 +375,9 @@ section { scroll-margin-top: 4.5rem; }
   .gate-card__inner { will-change: auto; box-shadow: none; min-height: 0; }
 }
 
-/* ============ Projects: stacked cards ============ */
+/* ============ Projects rail ============ */
 .projects { padding-top: clamp(4rem, 9vw, 8rem); border-top: 1px solid var(--line); }
+.rail__track { display: grid; gap: clamp(3.5rem, 8vw, 6rem); padding-inline: var(--gutter); max-width: var(--maxw); margin-inline: auto; }
 .proj { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: center; }
 .proj__proof { display: grid; place-items: center; min-height: 18rem; }
 .proj__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
@@ -394,23 +395,18 @@ section { scroll-margin-top: 4.5rem; }
 }
 @media (hover: hover) { .proj__link:hover { color: var(--sign); } }
 
-/* Projects reuse the departures card stack (.gate-card), with the proof on a lit panel */
-.stack--proj { gap: clamp(1.5rem, 4vh, 3rem); }
-.stack--proj .proj {
-  align-items: center; gap: clamp(1.5rem, 4vw, 4rem);
-  padding: clamp(1.25rem, 3vw, 3rem);
-  background: linear-gradient(180deg, var(--board-2), var(--board) 140%);
+@media (min-width: 1100px) {
+  .js .rail__sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; align-items: center; }
+  .js .rail__track {
+    display: flex; gap: 0; max-width: none; margin: 0; padding-inline: var(--gutter);
+    will-change: transform;
+  }
+  .js .proj { flex: none; width: min(78rem, 84vw); padding-right: clamp(3rem, 6vw, 7rem); height: min(40rem, 78vh); }
+  .js .proj + .proj { border-left: 1px solid var(--line); padding-left: clamp(3rem, 6vw, 7rem); }
 }
-.stack--proj .proj__proof {
-  align-self: stretch; padding: clamp(1rem, 2.5vw, 2rem);
-  background: radial-gradient(120% 90% at 50% 20%, #1d2125, var(--board) 75%);
-  border: 1px solid var(--line); border-radius: 2px;
-}
-.proj__count { position: absolute; top: 1rem; right: clamp(1rem, 2.5vw, 2rem); z-index: 2; font-family: var(--f-data); font-size: 0.75rem; color: var(--ink-3); }
 @media (max-width: 860px) {
   .proj { grid-template-columns: 1fr; }
   .proj__proof { min-height: 0; }
-  .proj__count { top: 0.75rem; }
 }
 
 /* proof: phone */
@@ -419,7 +415,8 @@ section { scroll-margin-top: 4.5rem; }
   border: 8px solid #26292d; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
 }
 .phone img { width: 100%; height: 100%; object-fit: cover; }
-@media (min-width: 861px) { .stack--proj .phone { width: auto; height: min(34rem, calc(100svh - 17rem)); } }
+.js .proj .phone { max-height: 100%; }
+@media (min-width: 1100px) { .js .proj .phone { width: auto; height: min(36rem, 70vh); } }
 
 /* proof: browser */
 .browser { width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid var(--line-strong); box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.85); }

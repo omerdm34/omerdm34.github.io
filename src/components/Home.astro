@@ -253,12 +253,11 @@ const placesBand = lang === 'tr'
       <p class="section-sign__sub">{t.projects.sub}</p>
     </div>
 
-    <ol class="stack stack--proj wrap" data-stack>
-          {t.projects.items.map((p, i) => (
-            <li class="gate-card" id={`p-${p.id}`} data-card style={`--i:${i}`}>
-             <article class="gate-card__inner proj" aria-labelledby={`proj-${p.id}`}>
-              <span class="gate-card__shade" aria-hidden="true" data-card-shade></span>
-              <span class="proj__count" aria-hidden="true">{String(i + 1).padStart(2, '0')} / {String(t.projects.items.length).padStart(2, '0')}</span>
+    <div class="rail" data-rail>
+      <div class="rail__sticky">
+        <ol class="rail__track" data-rail-track>
+          {t.projects.items.map((p) => (
+            <li class="proj" id={`p-${p.id}`}>
               <div class="proj__proof">
                 {p.id === 'signbridge' && (
                   <div class="phone">
@@ -318,7 +317,7 @@ const placesBand = lang === 'tr'
                   <span class="proj__date">{U(p.date)}</span>
                   <Flap text={p.status} class={`flaps--sm ${statusClass(p.status)}`} />
                 </div>
-                <h3 id={`proj-${p.id}`} class="proj__name">{U(p.name)}</h3>
+                <h3 class="proj__name">{U(p.name)}</h3>
                 <p class="proj__claim">{p.claim}</p>
                 <p class="proj__body">{p.body}</p>
                 <p class="proj__stack">{p.stack}</p>
@@ -333,10 +332,11 @@ const placesBand = lang === 'tr'
                   </a>
                 )}
               </div>
-             </article>
             </li>
           ))}
-    </ol>
+        </ol>
+      </div>
+    </div>
 
     <div class="wrap more">
       <h3 class="more__h">{U(t.projects.more.heading)}</h3>

@@ -5,7 +5,7 @@ import Icon from './Icon.astro';
 import { content, links, type Lang } from '../i18n/content';
 import { caseStudies, caseUi, datathonModels } from '../i18n/projects';
 
-import signbridgeLive from '../assets/projects/signbridge-live.png';
+import signbridgeHome from '../assets/projects/signbridge-home.png';
 import signbridgeGuide from '../assets/projects/signbridge/guide.png';
 import signbridgeText from '../assets/projects/signbridge/text.png';
 
@@ -25,7 +25,7 @@ const other = (lang === 'tr' ? '/projects/' : '/tr/projects/') + slug + '/';
 const screens =
   slug === 'signbridge-ai'
     ? [
-        { src: signbridgeLive, alt: lang === 'tr' ? 'Kamera modu: T harfi yüzde 89,8 güvenle tanınıyor' : 'Camera mode recognizing the letter T with 89.8% confidence', cap: lang === 'tr' ? 'Kamera modu' : 'Camera mode' },
+        { src: signbridgeHome, alt: lang === 'tr' ? 'SignBridgeAI ana ekranı: logo ve özellik menüsü' : 'SignBridgeAI home screen with its logo and feature menu', cap: lang === 'tr' ? 'Ana ekran' : 'Home screen' },
         { src: signbridgeText, alt: lang === 'tr' ? 'Metin modu: yazılan metni çevirme ve seslendirme' : 'Text mode for typing, translating and speaking', cap: lang === 'tr' ? 'Metin modu' : 'Text mode' },
         { src: signbridgeGuide, alt: lang === 'tr' ? 'Kamera rehberi ve ASL alfabe referansı' : 'Camera guide with an ASL alphabet reference', cap: lang === 'tr' ? 'Rehber' : 'Guide' },
       ]

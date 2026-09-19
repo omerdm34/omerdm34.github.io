@@ -153,75 +153,44 @@ if (!reduced) {
 if (reduced) preloader?.remove();
 
 /* ---------- Departures: gate cards stack, each new one slides up over the last ---------- */
-const stackCards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]')).map((card) => ({
-  card,
-  inner: card.firstElementChild as HTMLElement,
-  shade: card.querySelector<HTMLElement>('[data-card-shade]'),
-  stick: 0,
-}));
+type StackCard = { card: HTMLElement; inner: HTMLElement; shade: HTMLElement | null; stick: number };
+const stacks: StackCard[][] = Array.from(document.querySelectorAll<HTMLElement>('[data-stack]')).map((list) =>
+  Array.from(list.querySelectorAll<HTMLElement>(':scope > [data-card]')).map((card) => ({
+    card,
+    inner: card.firstElementChild as HTMLElement,
+    shade: card.querySelector<HTMLElement>('[data-card-shade]'),
+    stick: 0,
+  })),
+);
 function measureStack() {
   const vh = window.innerHeight;
-  stackCards.forEach((c, i) => {
-    // Pin under the topbar with a small step so earlier cards peek out above;
-    // a card taller than the screen pins by its bottom edge instead.
-    const base = 76 + i * 12;
-    c.stick = Math.min(base, vh - c.card.offsetHeight - 16);
-    c.card.style.setProperty('--stick', `${c.stick}px`);
-  });
+  for (const cards of stacks) {
+    cards.forEach((c, i) => {
+      // Pin under the topbar with a small step so earlier cards peek out above;
+      // a card taller than the screen pins by its bottom edge instead.
+      const base = 76 + i * 12;
+      c.stick = Math.min(base, vh - c.card.offsetHeight - 16);
+      c.card.style.setProperty('--stick', `${c.stick}px`);
+    });
+  }
 }
 function updateStack() {
   const vh = window.innerHeight;
-  for (let i = 0; i < stackCards.length - 1; i++) {
-    const cur = stackCards[i];
-    const next = stackCards[i + 1];
+  for (const cards of stacks) for (let i = 0; i < cards.length - 1; i++) {
+    const cur = cards[i];
+    const next = cards[i + 1];
     const top = next.card.getBoundingClientRect().top;
     const p = clamp01((vh - top) / Math.max(1, vh - next.stick)); // 0 → 1 while the next card rises
     cur.inner.style.transform = `scale(${(1 - p * 0.06).toFixed(4)})`;
     if (cur.shade) cur.shade.style.opacity = (p * 0.6).toFixed(3);
   }
 }
-if (!reduced && stackCards.length) {
+if (!reduced && stacks.length) {
   measureStack();
   window.addEventListener('resize', measureStack);
   window.addEventListener('load', measureStack);
-  new ResizeObserver(measureStack).observe(document.querySelector('[data-stack]')!);
-}
-
-/* ---------- Projects rail: vertical scroll drives a horizontal track ---------- */
-const rail = document.querySelector<HTMLElement>('[data-rail]');
-const track = document.querySelector<HTMLElement>('[data-rail-track]');
-const wide = window.matchMedia('(min-width: 1100px)');
-if (rail && track) {
-  let distance = 0;
-  const measure = () => {
-    if (!wide.matches || reduced) {
-      rail.style.height = '';
-      track.style.transform = '';
-      distance = 0;
-      return;
-    }
-    distance = Math.max(0, track.scrollWidth - window.innerWidth);
-    rail.style.height = `${window.innerHeight + distance}px`;
-    lenis?.resize();
-  };
-  const update = () => {
-    if (!distance) return;
-    const top = rail.getBoundingClientRect().top;
-    const p = Math.min(1, Math.max(0, -top / distance));
-    track.style.transform = `translate3d(${-p * distance}px,0,0)`;
-  };
-  measure();
-  window.addEventListener('resize', () => {
-    measure();
-    update();
-  });
-  wide.addEventListener('change', measure);
-  window.addEventListener('load', () => {
-    measure();
-    update();
-  });
-  if (lenis) lenis.on('scroll', update);
-  else window.addEventListener('scroll', update, { passive: true });
+  const ro = new ResizeObserver(measureStack);
+  document.querySelectorAll('[data-stack]').forEach((el) => ro.observe(el));
 }
 
 /* ---------- Scroll reveals ---------- */

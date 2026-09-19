@@ -39,7 +39,7 @@ const en = {
     items: [
       { value: 2, suffix: '', label: 'Engineering internships' },
       { value: 5, suffix: '', label: 'Projects shipped' },
-      { value: 13, suffix: '', label: 'Years of competitive taekwondo' },
+      { value: 12, suffix: '', label: 'Years of competitive taekwondo' },
       { value: 66, suffix: '%', label: 'Less prediction error in Datathon 2026' },
     ],
   },
@@ -74,7 +74,7 @@ const en = {
     heading: 'Passenger',
     text: [
       'I like the part of engineering where an idea has to survive contact with reality: a model that has to run on a phone, an assistant that has to pass a security review, a website a preschool publishes its news from every week.',
-      'I have interned at ASELSAN and at Mostaş Teknoloji, spent a semester abroad on Erasmus+, and competed as a national taekwondo athlete for thirteen years. The mat taught me more about showing up every day than any course did.',
+      'I have interned at ASELSAN and at Mostaş Teknoloji, spent a semester abroad on Erasmus+, and competed as a national taekwondo athlete for twelve years. The mat taught me more about showing up every day than any course did.',
     ],
     facts: [
       { k: 'Languages', v: 'Turkish (native) · English (B2)' },
@@ -251,7 +251,7 @@ const en = {
   beyond: {
     heading: 'Layover',
     sub: 'The parts of me that do not fit in a commit message.',
-    taekwondoTitle: 'National athlete, 13 years',
+    taekwondoTitle: 'National athlete, 12 years',
     taekwondoText:
       'I competed in taekwondo at national level for over a decade, with a national athlete record from the Turkish Taekwondo Federation, and helped train younger athletes and run club competitions.',
     copTitle: 'COP31 volunteer',
@@ -303,7 +303,7 @@ const tr: Content = {
     items: [
       { value: 2, suffix: '', label: 'Mühendislik stajı' },
       { value: 5, suffix: '', label: 'Tamamlanan proje' },
-      { value: 13, suffix: '', label: 'Yıl yarışma taekwondosu' },
+      { value: 12, suffix: '', label: 'Yıl yarışma taekwondosu' },
       { value: 66, suffix: '%', label: 'Datathon 2026’da azaltılan hata' },
     ],
   },
@@ -338,7 +338,7 @@ const tr: Content = {
     heading: 'Yolcu',
     text: [
       'Mühendisliğin en sevdiğim kısmı, bir fikrin gerçekle karşılaştığı an: telefonda çalışmak zorunda olan bir model, güvenlik incelemesinden geçmek zorunda olan bir asistan, bir anaokulunun her hafta duyurusunu yayınladığı bir site.',
-      'ASELSAN’da ve Mostaş Teknoloji’de staj yaptım, Erasmus+ ile bir dönem yurt dışında okudum ve on üç yıl millî taekwondo sporcusu olarak yarıştım. Her gün aynı ciddiyetle işin başına geçmeyi bana hiçbir ders minder kadar iyi öğretmedi.',
+      'ASELSAN’da ve Mostaş Teknoloji’de staj yaptım, Erasmus+ ile bir dönem yurt dışında okudum ve on iki yıl millî taekwondo sporcusu olarak yarıştım. Her gün aynı ciddiyetle işin başına geçmeyi bana hiçbir ders minder kadar iyi öğretmedi.',
     ],
     facts: [
       { k: 'Diller', v: 'Türkçe (ana dil) · İngilizce (B2)' },
@@ -515,7 +515,7 @@ const tr: Content = {
   beyond: {
     heading: 'Aktarma',
     sub: 'Bir commit mesajına sığmayan taraflarım.',
-    taekwondoTitle: '13 yıl millî sporcu',
+    taekwondoTitle: '12 yıl millî sporcu',
     taekwondoText:
       'On yılı aşkın süre ulusal düzeyde taekwondo yarışmalarına katıldım, Türkiye Taekwondo Federasyonu’ndan millî sporcu belgem var. Küçük sporcuların antrenmanlarına ve kulüp yarışmalarının organizasyonuna destek oldum.',
     copTitle: 'COP31 gönüllüsü',

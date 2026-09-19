@@ -1,8 +1,8 @@
 import type { Lang } from './content';
 
 export type CaseStudy = {
-  slug: 'signbridge-ai' | 'datathon-2026';
-  homeId: 'signbridge' | 'datathon';
+  slug: 'signbridge-ai' | 'datathon-2026' | 'dc-energy' | 'masal-bahcesi';
+  homeId: 'signbridge' | 'datathon' | 'dcenergy' | 'masal';
   code: string;
   name: string;
   date: string;
@@ -198,6 +198,128 @@ const en: CaseStudy[] = [
     stack: ['Python', 'pandas', 'scikit-learn', 'LightGBM', 'XGBoost', 'CatBoost', 'Optuna'],
     links: [{ href: 'https://github.com/omerdm34/datathon-2026', label: 'All scripts on GitHub' }],
   },
+  {
+    slug: 'dc-energy',
+    homeId: 'dcenergy',
+    code: 'DCE',
+    name: 'DC Energy',
+    date: 'AUG 2026',
+    status: 'LIVE',
+    title: 'DC Energy · Case study · Ömer Faruk Erdem',
+    description:
+      'How I built a live corporate site for an electrical contracting firm, with a panel the firm uses to edit its own content, running on free Cloudflare tiers.',
+    lede:
+      'A corporate website for an electrical contracting firm in Elazığ, with a panel the firm uses to change its own texts, products and projects. It runs on free tiers; the domain is the only bill.',
+    facts: [
+      { k: 'Client', v: 'Electrical contracting firm, Elazığ' },
+      { k: 'Role', v: 'Solo: design, development, hosting, domain and email' },
+      { k: 'Timeline', v: 'Aug – Sep 2026' },
+    ],
+    problem: [
+      'The firm had no website, and its content was going to keep changing: new projects, new products, rewritten services. If every edit had to come back to me, the site would be out of date within a month.',
+      'The brief also had a hard limit: no running costs beyond the domain. A panel that saves content usually means a server with a disk, and a server means a monthly bill.',
+    ],
+    steps: [
+      {
+        title: 'Content as data',
+        text: 'Every page reads from six JSON documents: site settings, home, about, services, products and projects. The panel edits them with plain forms, uploads images with type and size checks, and collects contact-form messages in an inbox.',
+      },
+      {
+        title: 'One place that knows where files live',
+        text: 'A single storage module decides where content goes: Cloudflare R2 in production, the local disk in development. Reads fall back to the content bundled in the build, so the first deploy was complete even while the bucket was still empty.',
+      },
+      {
+        title: 'From a server to free hosting',
+        text: 'My first plan was a small VPS because the panel writes files. Checking it against the no-running-costs rule, I moved the app to Cloudflare Workers with the OpenNext adapter and R2. Thanks to the storage module the switch touched one file, and the VPS path still works.',
+      },
+      {
+        title: 'A panel that is safe to leave online',
+        text: 'Sessions are signed JWTs in HttpOnly cookies, the contact form is validated with Zod, and both the login and the form sit behind Cloudflare rate-limiting rules.',
+      },
+      {
+        title: 'Working around a bundler limit',
+        text: 'Cloudflare’s email module could not be bundled into the Next.js build, so contact notifications go through a small separate Worker linked to the site by a service binding, with no public address of its own. The firm’s own address forwards to its inbox and sends DKIM-signed mail.',
+      },
+      {
+        title: 'Launch and handover',
+        text: 'Domain, DNS, SSL, a www-to-root redirect, Search Console with a sitemap and a Google Business Profile. Every account is registered to the firm, not to me, so the site does not depend on me to keep running.',
+      },
+    ],
+    results: [
+      { value: '€0', label: 'monthly hosting; the domain is the only cost' },
+      { value: '6', label: 'content sections the firm edits without me' },
+      { value: '0', label: 'code changes needed when the firm updates its content' },
+    ],
+    learned: [
+      'Put the swap point in one file: the storage module turned a hosting decision from a rewrite into a change of configuration.',
+      'Check a plan against the brief, not against habit. I first reached for a server; the client’s cost rule pointed to a better design.',
+      'Build-time settings are baked in for good: a local environment file once put a localhost address into the production build, so each environment now has its own file.',
+      'Copy is part of the product. The first draft followed a template for a different kind of firm; once I had their real projects, I rewrote the services around what they actually do.',
+    ],
+    stack: ['Next.js (App Router)', 'TypeScript', 'Tailwind CSS', 'Motion', 'Cloudflare Workers', 'OpenNext', 'R2', 'jose', 'Zod'],
+    links: [{ href: 'https://dcenergy.com.tr', label: 'dcenergy.com.tr' }],
+  },
+  {
+    slug: 'masal-bahcesi',
+    homeId: 'masal',
+    code: 'MSL',
+    name: 'Masal Bahçesi Preschool',
+    date: 'AUG 2026',
+    status: 'LIVE',
+    title: 'Masal Bahçesi Preschool · Case study · Ömer Faruk Erdem',
+    description:
+      'How I built a fast site for a small preschool and a one-password panel that lets a non-technical owner publish announcements from a phone.',
+    lede:
+      'A website for a small private preschool in Kahramanmaraş, and a one-password panel the owner uses to publish announcements and events without help. No developer in the loop, no monthly bill.',
+    facts: [
+      { k: 'Client', v: 'Private preschool, Kahramanmaraş' },
+      { k: 'Role', v: 'Solo: design, development, hosting, SEO and handover' },
+      { k: 'Timeline', v: 'Aug 2026' },
+    ],
+    problem: [
+      'The school needed to post announcements and events every week: enrolment periods, holidays, celebrations. The owner is not technical and runs the school from a phone.',
+      'I first connected a Git-based CMS. It needed a GitHub account, a repository invitation, an app installation, an account switcher and an English interface. The owner got stuck three times, and each time the fault was in that chain, not with the owner.',
+    ],
+    steps: [
+      {
+        title: 'A fast static site',
+        text: 'Ten content pages built with Astro and Tailwind. I measured the palette from the school’s logo and kept two versions of every brand colour: the bright one for decoration, and a darker one that passes 4.5:1 contrast on light tints, on cream and under white text.',
+      },
+      {
+        title: 'A panel built for one person',
+        text: 'I replaced the CMS with a panel inside the site: one address, one password, one form, all in Turkish and made for a phone. It lists, adds and deletes announcements and events, with an optional poster.',
+      },
+      {
+        title: 'Git as the database',
+        text: 'When the form is sent, a Cloudflare Worker writes a Markdown file and the image to the repository through the GitHub API. That commit triggers the build, and the site updates in a few minutes. There is no database or server to maintain, and every edit is in the history.',
+      },
+      {
+        title: 'Security without friction',
+        text: 'The password check runs in constant time, sessions are HMAC-signed HttpOnly, Secure, SameSite=Strict cookies that last 60 days, so the owner is not asked to log in on every visit, failed attempts are slowed down, and the GitHub token can only write to this one repository.',
+      },
+      {
+        title: 'Photos that do not slow the site down',
+        text: 'Posters are resized in the browser before upload, and a build step shrinks anything still too large. I set its limits by measuring the existing images, so it never touched a photo that was already fine.',
+      },
+      {
+        title: 'One address, tested',
+        text: 'The site answered on four addresses (http or https, with or without www). A Worker now sends them all to one. The local dev server ignores the Host header, so a manual check would have been misleading; I covered the redirect with its own unit tests.',
+      },
+    ],
+    results: [
+      { value: '7', label: 'announcements and events the owner has published without help since handover' },
+      { value: '23', label: 'unit tests for the redirect and the panel API' },
+      { value: '€0', label: 'monthly hosting; the domain is the only cost' },
+    ],
+    resultsNote: 'The count comes from the repository history, where every panel edit is a commit; test posts are excluded.',
+    learned: [
+      'When a user keeps getting stuck, look at the tool before the person. Removing the chain of accounts mattered more than any feature.',
+      'Local tools can lie: the dev server ignored the Host header, so only unit tests could prove the redirect.',
+      'Honesty is part of the design. I left out a poster whose photos were stock images, because parents would have taken them for the school’s own children.',
+    ],
+    stack: ['Astro', 'Tailwind CSS', 'Cloudflare Workers', 'GitHub API', 'sharp', 'Node test runner'],
+    links: [{ href: 'https://masalbahcesimaras.com', label: 'masalbahcesimaras.com' }],
+  },
 ];
 
 const tr: CaseStudy[] = [
@@ -309,6 +431,121 @@ const tr: CaseStudy[] = [
       'Her adımı ölçülen skoruyla ayrı bir betikte tutmak, hangi fikrin gerçekten işe yaradığını açıkça gösterdi.',
     ],
     links: [{ href: 'https://github.com/omerdm34/datathon-2026', label: 'Tüm betikler GitHub’da' }],
+  },
+  {
+    ...en[2],
+    date: 'AĞU 2026',
+    status: 'YAYINDA',
+    title: 'DC Energy · Proje detayı · Ömer Faruk Erdem',
+    description:
+      'Bir elektrik taahhüt firması için, içeriğini firmanın kendisinin düzenlediği bir panelle birlikte ücretsiz Cloudflare katmanlarında çalışan kurumsal siteyi nasıl yaptığım.',
+    lede:
+      'Elazığ’da bir elektrik taahhüt firması için kurumsal bir site ve firmanın kendi metinlerini, ürünlerini ve projelerini değiştirdiği bir panel. Ücretsiz katmanlarda çalışıyor; tek masraf alan adı.',
+    facts: [
+      { k: 'Müşteri', v: 'Elektrik taahhüt firması, Elazığ' },
+      { k: 'Rolüm', v: 'Tek başıma: tasarım, geliştirme, barındırma, alan adı ve e-posta' },
+      { k: 'Süre', v: 'Ağustos – Eylül 2026' },
+    ],
+    problem: [
+      'Firmanın sitesi yoktu ve içeriği sürekli değişecekti: yeni projeler, yeni ürünler, yeniden yazılan hizmetler. Her düzenleme bana dönseydi site bir ay içinde eskirdi.',
+      'İşin kesin bir sınırı da vardı: alan adı dışında sürekli masraf yok. İçerik kaydeden bir panel genelde diski olan bir sunucu, sunucu da aylık fatura demek.',
+    ],
+    steps: [
+      {
+        title: 'İçerik veri olarak',
+        text: 'Her sayfa altı JSON belgesinden okuyor: site ayarları, ana sayfa, kurumsal, hizmetler, ürünler ve projeler. Panel bunları sade formlarla düzenliyor, görselleri tür ve boyut kontrolüyle yüklüyor, iletişim formundan gelen mesajları bir gelen kutusunda topluyor.',
+      },
+      {
+        title: 'Dosyaların yerini bilen tek bir nokta',
+        text: 'İçeriğin nereye yazılacağına tek bir depolama modülü karar veriyor: üretimde Cloudflare R2, geliştirmede yerel disk. Okumalar derlemeye gömülü içeriğe geri düşüyor; bu sayede kova henüz boşken bile ilk yayın eksiksiz açıldı.',
+      },
+      {
+        title: 'Sunucudan ücretsiz barındırmaya',
+        text: 'Panel dosya yazdığı için ilk planım küçük bir VPS’ti. Bunu “sürekli masraf yok” kuralıyla karşılaştırınca uygulamayı OpenNext adaptörüyle Cloudflare Workers’a ve R2’ye taşıdım. Depolama modülü sayesinde geçiş tek dosyayı etkiledi; VPS yolu hâlâ çalışıyor.',
+      },
+      {
+        title: 'Açık bırakılabilecek bir panel',
+        text: 'Oturumlar HttpOnly çerezlerde imzalı JWT, iletişim formu Zod ile doğrulanıyor; hem giriş hem form Cloudflare hız sınırlama kurallarının arkasında.',
+      },
+      {
+        title: 'Derleyici sınırını aşmak',
+        text: 'Cloudflare’in e-posta modülü Next.js derlemesine paketlenemiyordu. Bu yüzden iletişim bildirimleri, siteye service binding ile bağlı ve kendine ait genel adresi olmayan küçük ayrı bir Worker’dan gidiyor. Firmanın kendi adresi gelen kutusuna yönleniyor ve DKIM imzalı e-posta gönderiyor.',
+      },
+      {
+        title: 'Yayın ve teslim',
+        text: 'Alan adı, DNS, SSL, www’dan köke yönlendirme, site haritasıyla Search Console ve Google İşletme Profili. Bütün hesaplar benim değil firmanın adına; site ayakta kalmak için bana bağımlı değil.',
+      },
+    ],
+    results: [
+      { value: '0 €', label: 'aylık barındırma; tek masraf alan adı' },
+      { value: '6', label: 'firmanın bana ihtiyaç duymadan düzenlediği içerik bölümü' },
+      { value: '0', label: 'firma içeriğini güncellerken gereken kod değişikliği' },
+    ],
+    learned: [
+      'Değişim noktasını tek dosyaya koy: depolama modülü, barındırma kararını baştan yazmaktan bir yapılandırma değişikliğine çevirdi.',
+      'Planı alışkanlığa göre değil işin tanımına göre sına. İlk aklıma gelen sunucuydu; müşterinin masraf kuralı daha iyi bir tasarıma götürdü.',
+      'Derleme anındaki ayarlar kalıcı olarak gömülür: bir yerel ortam dosyası bir keresinde üretim derlemesine localhost adresi yazdırdı; artık her ortamın kendi dosyası var.',
+      'Metin de ürünün parçası. İlk taslak başka türde bir firmanın şablonunu izliyordu; gerçek projeleri gelince hizmetleri firmanın asıl yaptığı işe göre yeniden yazdım.',
+    ],
+    links: [{ href: 'https://dcenergy.com.tr', label: 'dcenergy.com.tr' }],
+  },
+  {
+    ...en[3],
+    name: 'Masal Bahçesi Anaokulu',
+    date: 'AĞU 2026',
+    status: 'YAYINDA',
+    title: 'Masal Bahçesi Anaokulu · Proje detayı · Ömer Faruk Erdem',
+    description:
+      'Küçük bir anaokulu için hızlı bir site ve teknik olmayan bir yöneticinin telefonundan duyuru yayınlamasını sağlayan tek şifreli paneli nasıl yaptığım.',
+    lede:
+      'Kahramanmaraş’ta küçük bir özel anaokulu için bir site ve okul yöneticisinin duyuru ve etkinlikleri kendisinin yayınladığı tek şifreli bir panel. Arada geliştirici yok, aylık fatura yok.',
+    facts: [
+      { k: 'Müşteri', v: 'Özel anaokulu, Kahramanmaraş' },
+      { k: 'Rolüm', v: 'Tek başıma: tasarım, geliştirme, barındırma, SEO ve teslim' },
+      { k: 'Süre', v: 'Ağustos 2026' },
+    ],
+    problem: [
+      'Okulun her hafta duyuru ve etkinlik paylaşması gerekiyordu: kayıt dönemleri, tatiller, kutlamalar. Yönetici teknik biri değil ve okulu telefonundan yönetiyor.',
+      'İlk olarak Git tabanlı bir içerik yönetim sistemi bağladım. GitHub hesabı, depo daveti, uygulama kurulumu, hesap seçici ve İngilizce bir arayüz istiyordu. Yönetici üç kez takıldı ve her seferinde sorun onda değil, o zincirdeydi.',
+    ],
+    steps: [
+      {
+        title: 'Hızlı, statik bir site',
+        text: 'Astro ve Tailwind ile on içerik sayfası. Paleti okulun logosundan ölçerek çıkardım ve her marka renginin iki hâlini tuttum: süs için parlak olanı, açık tonlarda, krem zeminde ve beyaz yazının altında 4.5:1 kontrastı geçen koyu olanı.',
+      },
+      {
+        title: 'Tek kişi için yapılmış bir panel',
+        text: 'Yönetim sistemini sitenin içindeki bir panelle değiştirdim: tek adres, tek şifre, tek form; tamamı Türkçe ve telefon için tasarlandı. Duyuru ve etkinlikleri listeliyor, ekliyor, siliyor; isteğe bağlı afiş de eklenebiliyor.',
+      },
+      {
+        title: 'Veritabanı olarak Git',
+        text: 'Form gönderilince bir Cloudflare Worker, GitHub API üzerinden depoya bir Markdown dosyası ve görseli yazıyor. Bu commit derlemeyi tetikliyor ve site birkaç dakikada güncelleniyor. Bakımı gereken bir veritabanı ya da sunucu yok, her düzenleme geçmişte duruyor.',
+      },
+      {
+        title: 'Zahmetsiz güvenlik',
+        text: 'Şifre kontrolü sabit sürede çalışıyor; oturumlar HMAC imzalı, HttpOnly, Secure ve SameSite=Strict çerezlerde ve 60 gün sürüyor, böylece her girişte şifre sorulmuyor. Hatalı denemeler yavaşlatılıyor ve GitHub anahtarı yalnızca bu tek depoya yazabiliyor.',
+      },
+      {
+        title: 'Siteyi yavaşlatmayan fotoğraflar',
+        text: 'Afişler yüklenmeden önce tarayıcıda küçültülüyor, hâlâ büyük kalanları da bir derleme adımı sıkıştırıyor. Sınırlarını mevcut görselleri ölçerek belirledim; zaten iyi olan hiçbir fotoğrafa dokunmadı.',
+      },
+      {
+        title: 'Tek adres, testli',
+        text: 'Site dört adresten açılıyordu (http ya da https, www’lu ya da www’suz). Artık bir Worker hepsini tek adrese topluyor. Yerel geliştirme sunucusu Host başlığını yok saydığı için elle yapılan kontrol yanıltıcı olurdu; yönlendirmeyi kendi birim testleriyle doğruladım.',
+      },
+    ],
+    results: [
+      { value: '7', label: 'teslimden bu yana yöneticinin kendisinin yayınladığı duyuru ve etkinlik' },
+      { value: '23', label: 'yönlendirme ve panel API’si için birim testi' },
+      { value: '0 €', label: 'aylık barındırma; tek masraf alan adı' },
+    ],
+    resultsNote: 'Sayı, her panel düzenlemesinin bir commit olduğu depo geçmişinden alındı; deneme kayıtları hariç.',
+    learned: [
+      'Bir kullanıcı sürekli takılıyorsa önce kişiye değil araca bak. Hesap zincirini ortadan kaldırmak her özellikten daha önemliydi.',
+      'Yerel araçlar yanıltabilir: geliştirme sunucusu Host başlığını yok sayıyordu, yönlendirmeyi ancak birim testleri kanıtlayabildi.',
+      'Dürüstlük tasarımın parçası. Fotoğrafları stok görsel olan bir afişi siteye koymadım; veliler onları okulun kendi çocukları sanardı.',
+    ],
+    links: [{ href: 'https://masalbahcesimaras.com', label: 'masalbahcesimaras.com' }],
   },
 ];
 

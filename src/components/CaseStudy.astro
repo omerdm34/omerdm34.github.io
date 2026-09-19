@@ -8,6 +8,12 @@ import { caseStudies, caseUi, datathonModels } from '../i18n/projects';
 import signbridgeHome from '../assets/projects/signbridge-home.png';
 import signbridgeGuide from '../assets/projects/signbridge/guide.png';
 import signbridgeText from '../assets/projects/signbridge/text.png';
+import dcHome from '../assets/projects/dcenergy/home.jpg';
+import dcProjects from '../assets/projects/dcenergy/projects.jpg';
+import dcMobile from '../assets/projects/dcenergy/mobile.jpg';
+import msHome from '../assets/projects/masal/home.jpg';
+import msNews from '../assets/projects/masal/news.jpg';
+import msMobile from '../assets/projects/masal/mobile.jpg';
 
 interface Props { lang: Lang; slug: string }
 const { lang, slug } = Astro.props;
@@ -22,20 +28,33 @@ const home = lang === 'tr' ? '/tr/' : '/';
 const base = lang === 'tr' ? '/tr/projects/' : '/projects/';
 const other = (lang === 'tr' ? '/projects/' : '/tr/projects/') + slug + '/';
 
-const screens =
-  slug === 'signbridge-ai'
-    ? [
-        { src: signbridgeHome, alt: lang === 'tr' ? 'SignBridgeAI ana ekranı: logo ve özellik menüsü' : 'SignBridgeAI home screen with its logo and feature menu', cap: lang === 'tr' ? 'Ana ekran' : 'Home screen' },
-        { src: signbridgeText, alt: lang === 'tr' ? 'Metin modu: yazılan metni çevirme ve seslendirme' : 'Text mode for typing, translating and speaking', cap: lang === 'tr' ? 'Metin modu' : 'Text mode' },
-        { src: signbridgeGuide, alt: lang === 'tr' ? 'Kamera rehberi ve ASL alfabe referansı' : 'Camera guide with an ASL alphabet reference', cap: lang === 'tr' ? 'Rehber' : 'Guide' },
-      ]
-    : [];
+const tr = lang === 'tr';
+type Shot = { src: ImageMetadata; alt: string; cap: string; kind?: 'phone' | 'browser'; url?: string };
+const screensBySlug: Record<string, Shot[]> = {
+  'signbridge-ai': [
+    { src: signbridgeHome, alt: tr ? 'SignBridgeAI ana ekranı: logo ve özellik menüsü' : 'SignBridgeAI home screen with its logo and feature menu', cap: tr ? 'Ana ekran' : 'Home screen' },
+    { src: signbridgeText, alt: tr ? 'Metin modu: yazılan metni çevirme ve seslendirme' : 'Text mode for typing, translating and speaking', cap: tr ? 'Metin modu' : 'Text mode' },
+    { src: signbridgeGuide, alt: tr ? 'Kamera rehberi ve ASL alfabe referansı' : 'Camera guide with an ASL alphabet reference', cap: tr ? 'Rehber' : 'Guide' },
+  ],
+  'dc-energy': [
+    { kind: 'browser', url: 'dcenergy.com.tr', src: dcHome, alt: tr ? 'DC Energy ana sayfası: AG-OG, altyapı ve iç tesisat uygulamaları başlığı' : 'DC Energy home page headed by its low and medium voltage, infrastructure and wiring services', cap: tr ? 'Ana sayfa' : 'Home page' },
+    { kind: 'browser', url: 'dcenergy.com.tr/projeler', src: dcProjects, alt: tr ? 'Kategoriye göre süzülebilen proje kartları' : 'Project cards that can be filtered by category', cap: tr ? 'Projeler, panelden yönetiliyor' : 'Projects, managed from the panel' },
+    { kind: 'phone', src: dcMobile, alt: tr ? 'DC Energy ana sayfasının telefondaki görünümü' : 'DC Energy home page on a phone', cap: tr ? 'Telefonda' : 'On a phone' },
+  ],
+  'masal-bahcesi': [
+    { kind: 'browser', url: 'masalbahcesimaras.com', src: msHome, alt: tr ? 'Masal Bahçesi ana sayfası: arama ve WhatsApp düğmeleriyle karşılama bölümü' : 'Masal Bahçesi home page with call and WhatsApp buttons', cap: tr ? 'Ana sayfa' : 'Home page' },
+    { kind: 'browser', url: 'masalbahcesimaras.com/duyurular', src: msNews, alt: tr ? 'Yöneticinin panelden yayınladığı duyurular' : 'Announcements the owner published from the panel', cap: tr ? 'Panelden yayınlanan duyurular' : 'Announcements published from the panel' },
+    { kind: 'phone', src: msMobile, alt: tr ? 'Masal Bahçesi ana sayfasının telefondaki görünümü' : 'Masal Bahçesi home page on a phone', cap: tr ? 'Telefonda' : 'On a phone' },
+  ],
+};
+const screens = screensBySlug[slug] ?? [];
+const web = screens.some((s) => s.kind === 'browser');
 const maxMse = datathonModels[0].mse;
 const fmt = (n: number) => n.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', { maximumFractionDigits: 2 });
 ---
 <header class="topbar is-solid" data-topbar>
-  <a class="brand" href={home} aria-label="Ömer Faruk Erdem">
-    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span>
+  <a class="brand" href={home}>
+    <span class="brand__cell">Ö</span><span class="brand__cell">F</span><span class="brand__cell">E</span><span class="sr-only"> · Ömer Faruk Erdem</span>
   </a>
   <nav class="topnav" aria-label={lang === 'tr' ? 'Bölümler' : 'Sections'}>
     <a href={home + '#departures'}>{U(t.nav.departures)}</a>
@@ -44,9 +63,10 @@ const fmt = (n: number) => n.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', {
     <a href={home + '#contact'}>{U(t.nav.contact)}</a>
   </nav>
   <div class="topbar__actions">
-    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'} aria-label={t.langSwitch.label}>
+    <a class="lang" href={other} hreflang={lang === 'tr' ? 'en' : 'tr'} lang={lang === 'tr' ? 'en' : 'tr'}>
       <span class:list={['lang__opt', lang === 'en' && 'is-on']}>EN</span>
       <span class:list={['lang__opt', lang === 'tr' && 'is-on']}>TR</span>
+      <span class="sr-only"> · {t.langSwitch.label}</span>
     </a>
     <a class="btn btn--ghost btn--sm" href={links.cv} download aria-label={t.cvLong}>
       <Icon name="download" /><span>{t.cv}</span>
@@ -71,10 +91,17 @@ const fmt = (n: number) => n.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', {
 
   {screens.length > 0 && (
     <section class="case__screens" aria-label={ui.gallery}>
-      <ul class="screens wrap">
+      <ul class:list={['screens wrap', web && 'screens--web']}>
         {screens.map((s, i) => (
-          <li class="screens__item" data-reveal="up" style={`--d:${i * 110}ms`}>
-            <div class="phone"><Image src={s.src} alt={s.alt} widths={[320, 560]} sizes="(min-width: 900px) 22vw, 70vw" /></div>
+          <li class:list={['screens__item', s.kind === 'browser' && 'screens__item--browser']} data-reveal="up" style={`--d:${i * 110}ms`}>
+            {s.kind === 'browser' ? (
+              <div class="browser">
+                <div class="browser__bar" aria-hidden="true"><i /><i /><i /><span>{s.url}</span></div>
+                <Image src={s.src} alt={s.alt} widths={[560, 900, 1400]} sizes="(min-width: 900px) 40vw, 92vw" />
+              </div>
+            ) : (
+              <div class="phone"><Image src={s.src} alt={s.alt} widths={[320, 560]} sizes="(min-width: 900px) 22vw, 70vw" /></div>
+            )}
             <span class="screens__cap">{U(s.cap)}</span>
           </li>
         ))}

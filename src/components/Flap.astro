@@ -6,15 +6,20 @@ interface Props {
   pad?: number;
 }
 const { text, as: Tag = 'span', class: cls = '', pad = 0 } = Astro.props;
-// Words stay unbroken; lines may only wrap at the blank cell between words.
+// Words stay unbroken; each blank cell rides at the end of the word before it,
+// so a wrapped line never starts with an empty tile.
 const padded = text.padEnd(pad, ' ');
-const words = padded.split(/( )/).filter((w) => w !== '');
+const groups: string[] = [];
+for (const part of padded.split(/( )/).filter((w) => w !== '')) {
+  if (part === ' ' && groups.length) groups[groups.length - 1] += ' ';
+  else groups.push(part);
+}
 ---
 <Tag class:list={['flaps', cls]} data-flap>
   <span class="sr-only">{text}</span>
-  <span class="flaps__cells" aria-hidden="true">{words.map((w) =>
-    w === ' '
-      ? <span class="cell cell--blank" data-c=" ">{' '}</span>
-      : <span class="flaps__word">{[...w].map((c) => <span class="cell" data-c={c}>{c}</span>)}</span>
-  )}</span>
+  <span class="flaps__cells" aria-hidden="true">{groups.map((g) => (
+    <span class="flaps__word">{[...g].map((c) =>
+      c === ' ' ? <span class="cell cell--blank" data-c=" ">{' '}</span> : <span class="cell" data-c={c}>{c}</span>
+    )}</span>
+  ))}</span>
 </Tag>

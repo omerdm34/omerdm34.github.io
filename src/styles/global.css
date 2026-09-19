@@ -669,6 +669,14 @@ section { scroll-margin-top: 4.5rem; }
 .screens { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 3rem); justify-items: center; }
 .screens__item { display: grid; gap: 0.9rem; justify-items: center; }
 .screens .phone { width: min(16rem, 100%); }
+/* web projects: two browser shots side by side, the phone view beside them */
+.screens--web { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: start; }
+.screens__item--browser { width: 100%; }
+.screens--web .phone { width: min(12.5rem, 100%); }
+@media (max-width: 1100px) {
+  .screens--web { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .screens--web .screens__item:last-child { grid-column: 1 / -1; }
+}
 .screens__cap { font-family: var(--f-data); font-size: 0.8rem; color: var(--ink-3); letter-spacing: 0.05em; }
 
 .case__models { max-width: 58rem; }
